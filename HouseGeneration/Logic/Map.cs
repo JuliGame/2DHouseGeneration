@@ -4,12 +4,15 @@ namespace HouseGeneration.Logic;
 
 public class Map
 {
-    public readonly int x = 20;
-    public readonly int y = 13;
+    public readonly int x;
+    public readonly int y;
     
     Tile[,] tiles;
     Wall[,] walls;
-    public Map() {
+    public Map(int x, int y) {
+        this.x = x;
+        this.y = y;
+        
         tiles = new Tile[x, y];
         walls = new Wall[x*2+1, y*2+1];
         

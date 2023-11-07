@@ -26,29 +26,77 @@ public class Game1 : Game
         base.Initialize();
     }
     
+    int IsquareSize;
+    int IwallMargin;
+    int IwallWidth;
+    
     int squareSize;
     int wallMargin;
     int wallWidth;
     
+    Map map;
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        squareSize = 35;
-        wallWidth = 2;
-        wallMargin = wallWidth + 1;
+        IsquareSize = 30;
+        IwallWidth = 2;
+        IwallMargin = IwallWidth + 1;
+        
+        squareSize = IsquareSize;
+        wallWidth = IwallWidth;
+        wallMargin = IwallMargin;
+        map = new Map(20, 10);
         // TODO: use this.Content to load your game content here
     }
     
     Tile selectedTile;
+    private bool press;
+    private int cameraX;
+    private int cameraY;
+    private float zoom = 1f;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
         
-        if (Keyboard.GetState().IsKeyDown(Keys.R))
-            map.Generate();
+        if (Keyboard.GetState().IsKeyDown(Keys.R)) {
+            if (!press)
+                map.Generate();
+            press = true;
+        } else
+            press = false;
+        
+        float speed = 5;
+        if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) {
+            speed *= 5;
+        } else if (Keyboard.GetState().IsKeyDown(Keys.LeftControl)) {
+            speed /= 5;
+        }
+        
+
+        zoom = Mouse.GetState().ScrollWheelValue / 1000f + 1;
+
+        
+        squareSize = (int)(IsquareSize * zoom);
+        wallWidth = (int)(IwallWidth * zoom);
+        wallMargin = (int)(IwallMargin * zoom);
+        
+        
+        if (Keyboard.GetState().IsKeyDown(Keys.W)) {
+            cameraY += (int)(1 * speed);
+        }
+        if (Keyboard.GetState().IsKeyDown(Keys.S)) {
+            cameraY -= (int)(1 * speed);
+        }
+        if (Keyboard.GetState().IsKeyDown(Keys.A)) {
+            cameraX += (int)(1 * speed);
+        }
+        if (Keyboard.GetState().IsKeyDown(Keys.D)) {
+            cameraX -= (int)(1 * speed);
+        }
+
 
         // TODO: Add your update logic here
         
@@ -59,6 +107,8 @@ public class Game1 : Game
         {
             // Get the position of the mouse
             Point mousePosition = mouseState.Position;
+            mousePosition.X -= cameraX;
+            mousePosition.Y -= cameraY;
             
             int tileX = mousePosition.X / squareSize;
             int tileY = mousePosition.Y / squareSize;
@@ -74,7 +124,6 @@ public class Game1 : Game
 
             if (isUp) {
                 map.Paint(Color.Red, tileX, tileY, Side.Top);
-                System.Console.WriteLine("Painting top");
             }
             else if (isDown) {
                 map.Paint(Color.Red, tileX, tileY, Side.Bottom);
@@ -92,9 +141,7 @@ public class Game1 : Game
 
         base.Update(gameTime);
     }
-
     
-    Map map = new Map();
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -109,7 +156,7 @@ public class Game1 : Game
                 // Here you can set whatever color you like
                 _spriteBatch.Draw(
                     singlePixelTexture,
-                    new Rectangle(x * squareSize, y * squareSize, squareSize, squareSize),
+                    new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, squareSize),
                     map.GetTile(x, y).Color);
             }
         }
@@ -124,25 +171,24 @@ public class Game1 : Game
                 Color color = map.GetWall(ix, iy).Color;
                 if (ix % 2 == 1) {
                     if (iy % 2 == 1) {
-                        // Draw text saying "wall"
-                        SpriteFont font = Content.Load<SpriteFont>("Arial");
-                        string text = x + ";" + y;
-                        Vector2 textSize = font.MeasureString(text);
-                        float scale = 0.7f; // Adjust this value to something that suits your needs.
-                        textSize *= scale;
-                        Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f,
-                                                       y * squareSize + squareSize / 2f - textSize.Y / 2f);
-
-                        _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+                        // SpriteFont font = Content.Load<SpriteFont>("Arial");
+                        // string text = x + ";" + y;
+                        // Vector2 textSize = font.MeasureString(text);
+                        // float scale = 0.7f; // Adjust this value to something that suits your needs.
+                        // textSize *= scale;
+                        // Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f,
+                        //                                y * squareSize + squareSize / 2f - textSize.Y / 2f);
+                        //
+                        // _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
                         continue;
                     }
                     
-                    _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize, y * squareSize, squareSize, wallWidth), color);
+                    _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, wallWidth), color);
                 } else {
                     if (iy == map.y*2)
                         continue;
                     
-                    _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize, y * squareSize, wallWidth, squareSize), color);
+                    _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, wallWidth, squareSize), color);
                 }
             }
         }
