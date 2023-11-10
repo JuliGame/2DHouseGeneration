@@ -1,4 +1,6 @@
-﻿using HouseGeneration.Logic;
+﻿using System;
+using System.Threading;
+using HouseGeneration.Logic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -46,7 +48,13 @@ public class Game1 : Game
         squareSize = IsquareSize;
         wallWidth = IwallWidth;
         wallMargin = IwallMargin;
-        map = new Map(20, 10);
+        
+        map = new Map(17, 12);
+        Thread mapGeneratorThread = new Thread(() => {
+            map.Generate();
+        });
+        mapGeneratorThread.Start();
+
         // TODO: use this.Content to load your game content here
     }
     
@@ -62,8 +70,10 @@ public class Game1 : Game
             Exit();
         
         if (Keyboard.GetState().IsKeyDown(Keys.R)) {
-            if (!press)
-                map.Generate();
+            if (!press) {
+                Thread mapGeneratorThread = new Thread(() => { map.Generate(); });
+                mapGeneratorThread.Start();
+            }
             press = true;
         } else
             press = false;
@@ -171,15 +181,20 @@ public class Game1 : Game
                 Color color = map.GetWall(ix, iy).Color;
                 if (ix % 2 == 1) {
                     if (iy % 2 == 1) {
-                        // SpriteFont font = Content.Load<SpriteFont>("Arial");
+                        SpriteFont font = Content.Load<SpriteFont>("Arial");
                         // string text = x + ";" + y;
-                        // Vector2 textSize = font.MeasureString(text);
-                        // float scale = 0.7f; // Adjust this value to something that suits your needs.
-                        // textSize *= scale;
-                        // Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f,
-                        //                                y * squareSize + squareSize / 2f - textSize.Y / 2f);
-                        //
-                        // _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+                        
+                        string text = map.GetTile(x, y).Text;
+                        if (string.IsNullOrEmpty(text))
+                            continue;
+                        
+                        Vector2 textSize = font.MeasureString(text);
+                        float scale = 0.7f; // Adjust this value to something that suits your needs.
+                        textSize *= scale;
+                        Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f + cameraX,
+                                                       y * squareSize + squareSize / 2f - textSize.Y / 2f + cameraY);
+                        
+                        _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
                         continue;
                     }
                     

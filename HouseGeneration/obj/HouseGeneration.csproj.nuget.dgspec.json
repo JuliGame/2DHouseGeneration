@@ -38,6 +38,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "Accord.Math": {
+              "target": "Package",
+              "version": "[3.8.2-alpha, )"
+            },
             "MonoGame.Content.Builder.Task": {
               "target": "Package",
               "version": "[3.8.1.303, )"
@@ -45,6 +49,10 @@
             "MonoGame.Framework.DesktopGL": {
               "target": "Package",
               "version": "[3.8.1.303, )"
+            },
+            "SharpNoise": {
+              "target": "Package",
+              "version": "[0.12.1.1, )"
             }
           },
           "imports": [

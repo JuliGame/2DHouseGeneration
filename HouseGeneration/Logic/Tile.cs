@@ -8,4 +8,6 @@ public class Tile
     public Tile(Color color) {
         Color = color;
     }
+
+    public string Text { get; set; } = "";
 }

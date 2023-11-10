@@ -8,11 +8,36 @@
     ".NETCoreApp,Version=v6.0": {
       "HouseGeneration/1.0.0": {
         "dependencies": {
+          "Accord.Math": "3.8.2-alpha",
           "MonoGame.Content.Builder.Task": "3.8.1.303",
-          "MonoGame.Framework.DesktopGL": "3.8.1.303"
+          "MonoGame.Framework.DesktopGL": "3.8.1.303",
+          "SharpNoise": "0.12.1.1"
         },
         "runtime": {
           "HouseGeneration.dll": {}
+        }
+      },
+      "Accord/3.8.2-alpha": {
+        "runtime": {
+          "lib/netstandard2.0/Accord.dll": {
+            "assemblyVersion": "3.8.2.0",
+            "fileVersion": "3.8.2.6153"
+          }
+        }
+      },
+      "Accord.Math/3.8.2-alpha": {
+        "dependencies": {
+          "Accord": "3.8.2-alpha"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Accord.Math.Core.dll": {
+            "assemblyVersion": "3.8.2.0",
+            "fileVersion": "3.8.2.6153"
+          },
+          "lib/netstandard2.0/Accord.Math.dll": {
+            "assemblyVersion": "3.8.2.0",
+            "fileVersion": "3.8.2.6153"
+          }
         }
       },
       "MonoGame.Content.Builder.Task/3.8.1.303": {},
@@ -65,6 +90,14 @@
             "fileVersion": "0.0.0.0"
           }
         }
+      },
+      "SharpNoise/0.12.1.1": {
+        "runtime": {
+          "lib/netstandard2.0/SharpNoise.dll": {
+            "assemblyVersion": "0.12.1.1",
+            "fileVersion": "0.12.1.1"
+          }
+        }
       }
     }
   },
@@ -73,6 +106,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "Accord/3.8.2-alpha": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-g/EKYGdeMKTMJt7XtB65f+RyVW5ALfU1f1T1dpIGXOqzBtaaNK+OGB6pFY9RFrjKPQNUlnKUWF2jwH5knM+X7A==",
+      "path": "accord/3.8.2-alpha",
+      "hashPath": "accord.3.8.2-alpha.nupkg.sha512"
+    },
+    "Accord.Math/3.8.2-alpha": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-derpraljs7QO7U06DzGu1EHNVN+LGM2oA/z3M/zERSWXGs/BVOjMtUBx5WjdMnKXaM0OJiqZFNus3y3C04/H2w==",
+      "path": "accord.math/3.8.2-alpha",
+      "hashPath": "accord.math.3.8.2-alpha.nupkg.sha512"
     },
     "MonoGame.Content.Builder.Task/3.8.1.303": {
       "type": "package",
@@ -87,6 +134,13 @@
       "sha512": "sha512-eGYhqn0n1olk8MNYeE9EuBmoNNECN1T18rPMaQpkzsEQ0H3nVyFPXC+uCo78v5pi5juQpJ3PSFnSkjzZJ1U58A==",
       "path": "monogame.framework.desktopgl/3.8.1.303",
       "hashPath": "monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
+    },
+    "SharpNoise/0.12.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-YU87vP4pCJpEtu+yigyZFEzZPy02rf49v3YfrTN/f9YTfk1SZFfOTUKYhPcP4r1+4MpNNOBbu7UNlTvcwpx5Ww==",
+      "path": "sharpnoise/0.12.1.1",
+      "hashPath": "sharpnoise.0.12.1.1.nupkg.sha512"
     }
   }
 }

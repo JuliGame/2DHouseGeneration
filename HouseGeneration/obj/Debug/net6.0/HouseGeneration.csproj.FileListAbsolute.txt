@@ -23,3 +23,8 @@
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/Debug/net6.0/HouseGeneration.pdb
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/Debug/net6.0/HouseGeneration.genruntimeconfig.cache
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/Debug/net6.0/ref/HouseGeneration.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.dll.config
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.Math.Core.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.Math.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/SharpNoise.dll

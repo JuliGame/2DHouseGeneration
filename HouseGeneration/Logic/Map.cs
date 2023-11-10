@@ -16,13 +16,13 @@ public class Map
         tiles = new Tile[x, y];
         walls = new Wall[x*2+1, y*2+1];
         
-        Generate();
+        GenerateEmpty();
     }
-    
-    public void Generate() {
+
+    private void GenerateEmpty() {
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) { 
-                tiles[i, j] = new Tile(Color.ForestGreen);
+                tiles[i, j] = new Tile(Color.Aqua);
             }
         }
         
@@ -31,13 +31,20 @@ public class Map
                 walls[i, j] = new Wall(Color.Transparent);
             }
         }
+    }
+
+    public void Generate() {
+        GenerateEmpty();
         
         HouseGenerator.Generate(this);
     }
 
 
-    public void Paint(Color color, int x, int y) {
+    public void Paint(Color color, int x, int y, string text = null) {
+        if (x < 0 || x >= this.x || y < 0 || y >= this.y) return;
+        
         tiles[x, y].Color = color;
+        tiles[x, y].Text = text;
     }
     
     public void Paint(Color color, int x, int y, Side side) {
@@ -66,5 +73,9 @@ public class Map
     
     public Wall GetWall(int x, int y) {
         return walls[x, y];
+    }
+
+    public void Paint(Room color) {
+        
     }
 }
