@@ -6,7 +6,7 @@ namespace HouseGeneration.Logic.Util;
 
 public class Noise {
     
-    private static Random random = new Random();
+    private static Random random;
     public static int[,] ApplyCellularNoise(int[,] input, int numIterations) {
         int width = input.GetLength(0);
         int height = input.GetLength(1);

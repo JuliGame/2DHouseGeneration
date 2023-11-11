@@ -1,23 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Accord.Math;
 using Microsoft.Xna.Framework;
 
-namespace HouseGeneration.Logic;
+namespace HouseGeneration.Logic.Generator.@class;
 
-public class Room
-{
-    static Random random = new Random();
+public class Room {
     public List<(int, int)> points = new List<(int, int)>();
 
-    public int Width
-    {
+    public int Width {
         get { return points.Max(p => p.Item1) - points.Min(p => p.Item1) + 1; }
     }
 
-    public int Height
-    {
+    public int Height {
         get { return points.Max(p => p.Item2) - points.Min(p => p.Item2) + 1; }
     }
 
@@ -25,9 +20,9 @@ public class Room
     public string Text { get; set; }
 
     public Color Color;
+    public int Id = 2;
 
-    public Room(int width, int height, int x, int y, bool mustBeAtEdge = false, Color color = default)
-    {
+    public Room(int width, int height, int x, int y, bool mustBeAtEdge = false, Color color = default) {
         for (int x1 = 0; x1 < width; x1++)
         {
             for (int y1 = 0; y1 < height; y1++)
@@ -38,18 +33,14 @@ public class Room
 
         MustBeAtEdge = mustBeAtEdge;
 
-        if (color != default)
-        {
+        if (color != default) 
             Color = color;
-        }
-        else
-        {
-            Color = Color.FromNonPremultiplied(random.Next(255), random.Next(255), random.Next(255), 255);
-        }
+        
+        else 
+            Color = Color.FromNonPremultiplied(HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), 255);
     }
 
-    public Room(int area, float noSquareness, bool mustBeAtEdge = false, Color color = default)
-    {
+    public Room(int area, float noSquareness, bool mustBeAtEdge = false, Color color = default) {
         if (noSquareness <= 0)
             noSquareness = 0.01f;
         else if (noSquareness >= 1)
@@ -79,7 +70,7 @@ public class Room
             Width = area / Height;
         }
 
-        if (random.NextDouble() < 0.5)
+        if (HouseGenerator.random.NextDouble() < 0.5)
         {
             (Width, Height) = (Height, Width);
         }
@@ -101,12 +92,15 @@ public class Room
         }
         else
         {
-            Color = Color.FromNonPremultiplied(random.Next(255), random.Next(255), random.Next(255), 255);
+            Color = Color.FromNonPremultiplied(HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), 255);
         }
     }
+    
+    public float GetSquareness() {
+        return Math.Min(Width, Height) / (float)Math.Max(Width, Height);
+    }
 
-    public Room(List<(int, int)> points, Color color = default)
-    {
+    public Room(List<(int, int)> points, Color color = default) {
         this.points = points;
 
         if (color != default)
@@ -115,36 +109,15 @@ public class Room
         }
         else
         {
-            Color = Color.FromNonPremultiplied(random.Next(255), random.Next(255), random.Next(255), 255);
+            Color = Color.FromNonPremultiplied(HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), 255);
         }
     }
+    
 
-    public List<(int, int)> GetExterior()
-    {
-        List<(int, int)> exterior = new List<(int, int)>();
-
-        for (int x = points.Min(p => p.Item1) - 1; x <= points.Max(p => p.Item1) + 1; x++)
-        {
-            for (int y = points.Min(p => p.Item2) - 1; y <= points.Max(p => p.Item2) + 1; y++)
-            {
-                if (points.Contains((x, y)))
-                {
-                    continue;
-                }
-
-                exterior.Add((x, y));
-            }
-        }
-
-        return exterior;
-    }
-
-    public List<(int, int)> GetPoinsOfSide(Side side)
-    {
+    public List<(int, int)> GetPoinsOfSide(Side side) {
         List<(int, int)> finalPoints = new List<(int, int)>();
 
-        switch (side)
-        {
+        switch (side) {
             case Side.Right:
                 for (int y = points.Min(p => p.Item2); y <= points.Max(p => p.Item2); y++)
                 {
@@ -179,13 +152,10 @@ public class Room
         }
 
         return finalPoints;
-        // return points;
     }
 
-    public void Extend(Side facingSide)
-    {
-        switch (facingSide)
-        {
+    public void Extend(Side facingSide) {
+        switch (facingSide) {
             case Side.Top:
                 GetPoinsOfSide(Side.Top).ForEach(p => points.Add((p.Item1, p.Item2 - 1)));
                 break;
@@ -201,10 +171,8 @@ public class Room
         }
     }
 
-    public void UnExtend(Side facingSide)
-    {
-        switch (facingSide)
-        {
+    public void UnExtend(Side facingSide) {
+        switch (facingSide) {
             case Side.Top:
                 GetPoinsOfSide(Side.Top).ForEach(p => points.Remove((p.Item1, p.Item2)));
                 break;
@@ -220,16 +188,10 @@ public class Room
         }
     }
 
-    public (float, float) GetCenter()
-    {
+    public (float, float) GetCenter() {
         return (points.Min(p => p.Item1) + Width / 2f, points.Min(p => p.Item2) + Height / 2f);
     }
-
-    public (int, int) GetTopLeft()
-    {
-        return (points.Min(p => p.Item1), points.Min(p => p.Item2));
-    }
-
+    
     public bool isNextTo(int x, int y)
     {
         // Todo mejorar esta funci?n.
@@ -249,12 +211,7 @@ public class Room
         return false;
     }
     
-    public void MoveTo(int x, int y)
-    {
-        // Move the room to the given position
-        // lefter points.x = x
-        // upper points.y = y
-
+    public void MoveTo(int x, int y) {
         int minX = points.Min(p => p.Item1);
         int minY = points.Min(p => p.Item2);
 
@@ -264,184 +221,8 @@ public class Room
             points.Add((dx - minX + x, dy - minY + y));
         }
     }
-    
-    public List<Room> Divide(int size)
-    {
-        // List<Room> rooms = new List<Room>();
-        // int remaining = size - 2;
-        //
-        // List<Room> dividedRooms = DivideExactlyIn(2);
-        // Room room1 = dividedRooms[0];
-        // Room room2 = dividedRooms[1];
-        //
-        // rooms.Add(room1);
-        // if (remaining == 0) 
-        //     rooms.Add(room2);
-        //
-        // rooms.AddRange(room2.Divide(remaining));
-        // return rooms;
-
-        return DivideExactlyIn(2, points.ToList());
-    }
-
-
-public List<Room> DivideExactlyIn(int slices, List<(int, int)> areaPoints)
-    {
-        List<Room> rooms = new List<Room>();
-        DivideArea(rooms, areaPoints, slices);
-        return rooms;
-    }
-
-    private void DivideArea(List<Room> rooms, List<(int, int)> areaPoints, int slices)
-    {
-        if (slices == 0 || areaPoints.Count < 3)
-        {
-            return;
-        }
-
-        if (slices == 1)
-        {
-            rooms.Add(new Room(areaPoints));
-            return;
-        }
-
-        // nos fijaos en la forma de la habitaci?n
-        bool divideHorizontally = Width > Height;
-
-        if (divideHorizontally)
-        {
-            int splitY = RandomBetween(areaPoints, 0.5f);
-            List<(int, int)> upperRoomPoints = new List<(int, int)>();
-            List<(int, int)> lowerRoomPoints = new List<(int, int)>();
-
-            foreach (var point in areaPoints)
-            {
-                if (point.Item2 < splitY)
-                {
-                    upperRoomPoints.Add(point);
-                }
-                else
-                {
-                    lowerRoomPoints.Add(point);
-                }
-            }
-
-            DivideArea(rooms, upperRoomPoints, slices - 1);
-            DivideArea(rooms, lowerRoomPoints, slices - 1);
-        }
-        else
-        {
-            int splitX = RandomBetween(areaPoints, 0.5f);
-            List<(int, int)> leftRoomPoints = new List<(int, int)>();
-            List<(int, int)> rightRoomPoints = new List<(int, int)>();
-
-            foreach (var point in areaPoints)
-            {
-                if (point.Item1 < splitX)
-                {
-                    leftRoomPoints.Add(point);
-                }
-                else
-                {
-                    rightRoomPoints.Add(point);
-                }
-            }
-
-            DivideArea(rooms, leftRoomPoints, slices - 1);
-            DivideArea(rooms, rightRoomPoints, slices - 1);
-        }
-    }
-
-    private int RandomBetween(List<(int, int)> points, float normalDistribution) {
-        if (normalDistribution == 0)
-        {
-            return RandomBetween(points);
-        }
-
-        int index = (int)Math.Round(random.Next(points.Count) * 100 + points.Count / 2f);
-        if (index < 0)
-        {
-            index = 0;
-        }
-        else if (index >= points.Count)
-        {
-            index = points.Count - 1;
-        }
-        return points[index].Item1;
-    }
-
-    private int RandomBetween(List<(int, int)> points)
-    {
-        int index = random.Next(points.Count);
-        return points[index].Item1;
-    }
 
     
-    private List<(int, int)> RemovePointsFromList(List<(int, int)> sourceList, List<(int, int)> pointsToRemove)
-    {
-        List<(int, int)> result = new List<(int, int)>(sourceList);
-        foreach (var point in pointsToRemove)
-        {
-            result.Remove(point);
-        }
-        return result;
-    }
-    
-    
-    
-    // public List<Room> Divide(int size) {
-    //     // divide the room in the given number of rooms
-    //     // the rooms are divided in the direction of the longest side
-    //     
-    //     int[,] mask = new int[points.Max(p => p.Item1) - points.Min(p => p.Item1) + 1, points.Max(p => p.Item2) - points.Min(p => p.Item2) + 1];
-    //     foreach (var (x, y) in points) {
-    //         mask[x - points.Min(p => p.Item1), y - points.Min(p => p.Item2)] = 1;
-    //     }
-    //     
-    //     int[,] input = Noise.CreateUniqueMatrix(size, Height, Width);
-    //         
-    //     Console.WriteLine("mask Matrix:");
-    //     Noise.PrintMatrix(mask);
-    //     
-    //     Console.WriteLine("Input Matrix:");
-    //     Noise.PrintMatrix(input);
-    //     
-    //     int numIterations = 1;
-    //     int[,] output2 = Noise.ApplyCellularNoise(input, numIterations);
-    //     int[,] output = input;
-    //     for (int x = 0; x < Width; x++) {
-    //         for (int y = 0; y < Height; y++) {
-    //             if (input[x, y] == -1)
-    //                 output[x, y] = -1;
-    //             
-    //             if (mask[x, y] == 0) {
-    //                 output[x, y] = -1;
-    //                 continue;
-    //             }
-    //             
-    //             output[x, y] = output2[x, y];
-    //         }
-    //     }
-    //     Console.WriteLine("Output Matrix:");
-    //     Noise.PrintMatrix(output);
-    //     
-    //     int max = output.Cast<int>().Max();
-    //     List<Room> rooms = new List<Room>();
-    //     for (int i = 0; i < max; i++) {
-    //         List<(int, int)> points = new List<(int, int)>();
-    //         for (int x = 0; x < Width; x++) {
-    //             for (int y = 0; y < Height; y++) {
-    //                 if (output[x, y] == i) {
-    //                     points.Add((x + GetTopLeft().Item1, y + GetTopLeft().Item2));
-    //                 }
-    //             }
-    //         }
-    //         rooms.Add(new Room(points));
-    //     }
-    //
-    //     return rooms;
-    // }
-
     private List<(int, int)> GetCorners() {
         var corners = new List<(int, int)>();
         
@@ -484,9 +265,8 @@ public List<Room> DivideExactlyIn(int slices, List<(int, int)> areaPoints)
                 (!isBelowFilled && !isRightFilled && !isAboveFilled && isLeftFilled));
     }
     
-    public Room Grow(int area, HouseGenerator.HouseBuilder generator) {
+    public List<Room> Grow(int maxRooms, HouseGenerator.HouseBuilder generator, int maxSize = 1000) {
         List<(int, int)> corners = GetCorners();
-        corners.Shuffle();
         
         List<(Side, Side)> expandTo = new List<(Side, Side)>() {
             (Side.Top, Side.Left),
@@ -494,41 +274,89 @@ public List<Room> DivideExactlyIn(int slices, List<(int, int)> areaPoints)
             (Side.Bottom, Side.Left),
             (Side.Bottom, Side.Right)
         };
-        expandTo.Shuffle();
+        // expandTo.Shuffle();
         
-        // iterate over the corners expanding the room until it reaches the given area or it can't expand anymore
-        // if it can't expand anymore, reset and try with another corner
+
+        List<Room> rooms = new List<Room>();
         foreach (var corner in corners) {
+            Room room = new Room(1, 1, corner.Item1, corner.Item2);
+            rooms.Add(room);
+        }
+        
+        if (rooms.Count > maxRooms) {
+            int diff = rooms.Count - maxRooms;
+            for (int i = 0; i < diff; i++) {
+                rooms.RemoveAt(HouseGenerator.random.Next(rooms.Count));
+            }
+        }
+        
+        List<(int, int)> unreachablePoints = new List<(int, int)>();
+        foreach (var room in rooms.ToList()) {
+            bool success = false;
             foreach (var (side1, side2) in expandTo) {
-                Room room = new Room(1, 1, corner.Item1, corner.Item2);
-                while (room.points.Count < area && generator.CanPlaceRoom(room)) {
+                while (generator.CanPlaceRoom(room) && !ContainsAny(unreachablePoints, room.points) && room.points.Count < maxSize) {
                     room.Extend(side1);
                     room.Extend(side2);
                 }
-
-                if (!generator.CanPlaceRoom(room)) {
+                
+                if (room.points.Count > 1 && !generator.CanPlaceRoom(room)) {
                     room.UnExtend(side1);
                     room.UnExtend(side2);
-                    
-                    // Try expanding to only one side if it can't expand to both
-                    while (room.points.Count < area && generator.CanPlaceRoom(room)) {
-                        room.Extend(side1);
-                    }
-                    if (!generator.CanPlaceRoom(room)) {
-                        room.UnExtend(side1);
-                        
-                        while (room.points.Count < area && generator.CanPlaceRoom(room)) {
-                            room.Extend(side2);
-                        }
-                    }
-                }
-
-                if (room.points.Count == area && generator.CanPlaceRoom(room)) {
-                    generator.TryToPlaceRoom(room);
-                    return room;
+                    success = true;
                 }
             }
+            if (!success) {
+                rooms.Remove(room);
+            } else {
+                unreachablePoints.AddRange(room.points);
+            }
         }
-        return null;
+
+        
+        List<Side> expandTo2 = new List<Side>() { Side.Top, Side.Left, Side.Bottom, Side.Right };
+        
+        foreach (var room in rooms.ToList()) {
+            bool success = false;
+            unreachablePoints.RemoveAll(p => room.points.Contains(p));
+            
+            foreach (var side in expandTo2) {
+                int initSize = room.points.Count;
+                while (generator.CanPlaceRoom(room) && !ContainsAny(unreachablePoints, room.points)) {
+                    room.Extend(side);
+                }
+                
+                room.UnExtend(side);
+                if (room.points.Count > initSize && !generator.CanPlaceRoom(room)) {
+                    break;
+                }
+            }
+            
+            unreachablePoints.AddRange(room.points);
+        }
+        
+        
+        // foreach (var room in rooms) {
+            // Console.Out.WriteLine("Width:" + room.Width);
+            // Console.Out.WriteLine("Height:" + room.Height);
+            // Console.Out.WriteLine("Squareness:" + room.GetSquareness());
+            // generator.TryToPlaceRoom(room);
+        // }
+        
+        return rooms;
+    }
+    
+    public bool ContainsAny(List<(int, int)> array1, List<(int, int)> array2) {
+        // check if any of the points in array1 are in array2
+        return array1.Any(array2.Contains);
+    }
+
+    public List<(int, int)> GetMiddles() {
+        // if even return the exact middle else return one of the two middles
+        List<(int, int)> middles = new List<(int, int)>();
+        middles.Add(GetPoinsOfSide(Side.Bottom)[Width / 2]);
+        middles.Add(GetPoinsOfSide(Side.Top)[Width / 2]);
+        middles.Add(GetPoinsOfSide(Side.Left)[Height / 2]);
+        middles.Add(GetPoinsOfSide(Side.Right)[Height / 2]);
+        return middles;
     }
 }

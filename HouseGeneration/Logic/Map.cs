@@ -1,3 +1,4 @@
+using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
 
 namespace HouseGeneration.Logic;
@@ -33,10 +34,10 @@ public class Map
         }
     }
 
-    public void Generate() {
+    public void Generate(int seed) {
         GenerateEmpty();
         
-        HouseGenerator.Generate(this);
+        HouseGenerator.Generate(this, seed);
     }
 
 

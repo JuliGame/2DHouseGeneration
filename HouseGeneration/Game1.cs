@@ -37,8 +37,8 @@ public class Game1 : Game
     int wallWidth;
     
     Map map;
-    protected override void LoadContent()
-    {
+    int seed = 0;
+    protected override void LoadContent() {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         IsquareSize = 30;
@@ -49,9 +49,11 @@ public class Game1 : Game
         wallWidth = IwallWidth;
         wallMargin = IwallMargin;
         
-        map = new Map(17, 12);
+        map = new Map(25, 18);
+        // map = new Map(17, 12);
+        // map = new Map(12, 8);
         Thread mapGeneratorThread = new Thread(() => {
-            map.Generate();
+            map.Generate(seed);
         });
         mapGeneratorThread.Start();
 
@@ -59,7 +61,8 @@ public class Game1 : Game
     }
     
     Tile selectedTile;
-    private bool press;
+    private bool pressR;
+    private bool pressT;
     private int cameraX;
     private int cameraY;
     private float zoom = 1f;
@@ -68,16 +71,41 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        
+
+        Thread mapGeneratorThread = null;
         if (Keyboard.GetState().IsKeyDown(Keys.R)) {
-            if (!press) {
-                Thread mapGeneratorThread = new Thread(() => { map.Generate(); });
+            if (!pressR) {
+                if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
+                    mapGeneratorThread = new Thread(() => { map.Generate(seed); });
+                    mapGeneratorThread.Start();
+                }
+            }
+            pressR = true;
+        } else
+            pressR = false;
+        
+        if (Keyboard.GetState().IsKeyDown(Keys.T)) {
+            if (!pressT) {
+                if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
+                    seed++;
+                    mapGeneratorThread = new Thread(() => { map.Generate(seed); });
+                    mapGeneratorThread.Start();
+                }
+            }
+            pressT = true;
+        } else
+            pressT = false;
+
+        
+        if (Keyboard.GetState().IsKeyDown(Keys.Space)) {
+            if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
+                seed++;
+                mapGeneratorThread = new Thread(() => { map.Generate(seed); });
                 mapGeneratorThread.Start();
             }
-            press = true;
-        } else
-            press = false;
-        
+        }
+
+
         float speed = 5;
         if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) {
             speed *= 5;

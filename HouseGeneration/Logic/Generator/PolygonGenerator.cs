@@ -67,9 +67,7 @@ public class PolygonGenerator
         // Calcula el número total de tiles a eliminar
         int totalTiles = width * height;
         int tilesToRemove = (int)(totalTiles * percentToRemove);
-
-        Random rand = new Random();
-
+        
         // Eliminar los tiles necesarios para cumplir con el porcentaje
         while (tilesToRemove > 5)
         {
@@ -132,9 +130,8 @@ public class PolygonGenerator
     private static (int, int) GetRandomCorner(TileInfo[,] tiles)
     {
         var corners = GetCorners(tiles);
-        var rand = new Random();
         
-        var index = rand.Next(corners.Count);
+        var index = HouseGenerator.random.Next(corners.Count);
         
         return corners[index];
     }

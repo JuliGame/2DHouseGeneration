@@ -1,30 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
 
 namespace HouseGeneration.Logic;
 
-public class HouseGenerator
-{
-    public static Random random = new Random();
+public class HouseGenerator {
+
+    public static Random random;
     
     public class HouseBuilder {
         
         private int[,] tileGrid;
-        // 0 = outside, 1 = free, 2 = occupied, 3 = occupied_but_accessible
+        // 0 = outside, 1 = free, 2 = occupied, 3 = occupied_by_living_or_hallway
         private Room[,] tileRooms;
         private Room livingRoom;
         private Map map;
-        
-        private void printTileGrid() {
-            for (int y = 0; y < tileGrid.GetLength(1); y++) {
-                for (int x = 0; x < tileGrid.GetLength(0); x++) {
-                    Console.Out.Write(tileGrid[x, y] + " ");
-                }
-                Console.Out.WriteLine();
-            }
-        }
         public HouseBuilder(Map map, PolygonGenerator.TileInfo[,] tiles, int margin) {
             tileGrid = new int[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
             for (int x = -this.margin; x < tileGrid.GetLength(0) - margin; x++) {
@@ -113,7 +105,6 @@ public class HouseGenerator
                         int dy = y + (int)(side.GetY() * distance);
 
                         if (dx < 0 || dx >= tileGrid.GetLength(0) || dy < 0 || dy >= tileGrid.GetLength(1)) {
-                            Console.Out.WriteLine("1");
                             break;
                         }
                         
@@ -123,7 +114,7 @@ public class HouseGenerator
                             {
                                 if (distance < bestDistance)
                                 {
-                                    Console.Out.WriteLine(bestDistance);
+                                    // Console.Out.WriteLine(bestDistance);
                                     bestDistance = distance;
                                     best = ((x, y), (dx, dy), side, distance);
                                 }
@@ -140,7 +131,6 @@ public class HouseGenerator
                         }
                         
                         if (!canTravelThrough.Contains(tileGrid[dx, dy])) {
-                            Console.Out.WriteLine("2   " + tileGrid[dx, dy]);
                             break;
                         }
                         
@@ -159,11 +149,71 @@ public class HouseGenerator
                 distance = best.Item4
             };
         }
-        
+        public RayCastResult Raycast((int, int) start, bool findClosest, int[] canTravelThrough, int[] shouldFind) {
+            List<Side> sides = new List<Side>();
+            sides.Add(Side.Top);
+            sides.Add(Side.Right);
+            sides.Add(Side.Bottom);
+            sides.Add(Side.Left);
+            
+            ((int, int), (int, int), Side, int) best = default;
+            int bestDistance = findClosest ? int.MaxValue : int.MinValue;
+            
+            foreach (var side in sides) {
+                int distance = 0;
+                while (true) {
+                    int x = start.Item1;
+                    int y = start.Item2;
+                    
+                    distance++;
+                    int dx = x + (int)(side.GetX() * distance);
+                    int dy = y + (int)(side.GetY() * distance);
+
+                    if (dx < 0 || dx >= tileGrid.GetLength(0) || dy < 0 || dy >= tileGrid.GetLength(1)) {
+                        break;
+                    }
+                    
+                    if (shouldFind.Contains(tileGrid[dx, dy]))
+                    {
+                        if (findClosest)
+                        {
+                            if (distance < bestDistance)
+                            {
+                                // Console.Out.WriteLine(bestDistance);
+                                bestDistance = distance;
+                                best = ((x, y), (dx, dy), side, distance);
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            if (distance > bestDistance)
+                            {
+                                bestDistance = distance;
+                                best = ((x, y), (dx, dy), side, distance);
+                            }
+                        }
+                    }
+                    
+                    if (!canTravelThrough.Contains(tileGrid[dx, dy])) {
+                        break;
+                    }
+                }
+            }
+
+            return best == default ? null : new RayCastResult() {
+                root = best.Item1,
+                end = best.Item2,
+                side = best.Item3,
+                distance = best.Item4
+            };
+        }
 
         public bool BuildHouse()
         {
             // Paso 1: Crear Living room
+            // se inicia la generacion con un living room
+            // lo primero, el living mide un "size"% del total de la casa
             float size = 0.2f;
             livingRoom = null;
             while (livingRoom == null || !AddRoomRandomly(livingRoom)) {
@@ -176,14 +226,15 @@ public class HouseGenerator
                 float noSquareness = random.Next(30) / 100f;
                 noSquareness *= (random.Next(20) - 10f)/ 100f; 
                 livingRoom = new Room(roomM2, noSquareness, false, Color.SaddleBrown);
+                livingRoom.Text = "living";
+                livingRoom.Id = 3;  
                 
                 size -= 0.01f;
             }
-            livingRoom.Text = "living";
-            
             
             
             // Paso 2: Crear pasillos desde el living room
+            // Una vez creado el living room, se crean un pasillo desde el living room a la salida mas lejana
             if (getFreeM2() > 10 * 5) {
                 RayCastResult pasilloPrincipalRaycast = Raycast(livingRoom, false, new[] { 1 }, new[] { -1, 0 });
                 if (pasilloPrincipalRaycast == null)
@@ -195,12 +246,12 @@ public class HouseGenerator
                 }
                 
                 hallway.Color = Color.Brown;
-                
+                hallway.Id = 3;
                 TryToPlaceRoom(hallway, true);
             }
             
             // Paso 3: Crear pasillo del living a la entrada
-            
+            // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
             RayCastResult hallRaycast = Raycast(livingRoom, true, new[] { 1 }, new[] { -1, 0 });
             if (hallRaycast == null)
                 return false;
@@ -209,141 +260,157 @@ public class HouseGenerator
                 Room hall = hallRaycast.GetAsRoom(false, false);
                 hall.Color = Color.Brown;
                 hall.Text = "hall";
+                hall.Id = 3;
                 TryToPlaceRoom(hall, true);
             }
             
+            // Paso 4: Crear puerta del living al pasillo
+            // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
             Room door = new Room(1,1,hallRaycast.end.Item1, hallRaycast.end.Item2);
             door.Extend(hallRaycast.side.Invert());
             door.UnExtend(hallRaycast.side);
             door.Color = Color.Gray;
             door.Text = "door";
+            door.Id = 3;
             TryToPlaceRoom(door, true);
-            
-
-            float sizeDifference = 0;
-            List<List<(int, int)>> Bubbles = GetBubbles();
-            // Calculamos la diferencia de tamaño entre la habitación más grande y la más pequeña
-            foreach (var bubble in Bubbles) {
-                int minX = bubble.Min(point => point.Item1);
-                int maxX = bubble.Max(point => point.Item1);
-                int minY = bubble.Min(point => point.Item2);
-                int maxY = bubble.Max(point => point.Item2);
-                int width = maxX - minX;
-                int height = maxY - minY;
-                sizeDifference = Math.Max(sizeDifference, Math.Abs(width - height));
-            }
-            
-            Console.Out.WriteLine(Bubbles.Count + " Size difference: " + sizeDifference);
-
-            Room garage = new Room(22, .2f, true);
-            Room kitchen = new Room(8, .3f, false);
-            Room bathroom = new Room(4, .3f, false);
-            Room bedroom = new Room(8, .3f, false);
-            garage.Color = Color.Gray;
-            garage.Text = "garage";
-            kitchen.Color = Color.Yellow;
-            kitchen.Text = "kitchen";
-            bathroom.Color = Color.Pink;
-            bathroom.Text = "bathroom";
-            bedroom.Color = Color.Blue;
-            bedroom.Text = "bedroom";
             
             
             // todo crear AbstractRoom que sirva para tener info de la room pero en si no exista.
             // muy util para generar y hacer reglas y pelotudeces.
-            
-            
             // todo hacer generacion de habitaciones con un wave function collapse y las reglas de las habitaciones
-            
+
+            // Room garage = new Room(22, .2f, true);
+            // Room kitchen = new Room(8, .3f, false);
+            // Room bathroom = new Room(4, .3f, false);
+            // Room bedroom = new Room(8, .3f, false);
+            // garage.Color = Color.Gray;
+            // garage.Text = "garage";
+            // kitchen.Color = Color.Yellow;
+            // kitchen.Text = "kitchen";
+            // bathroom.Color = Color.Pink;
+            // bathroom.Text = "bathroom";
+            // bedroom.Color = Color.Blue;
+            // bedroom.Text = "bedroom";
+            //
             // List<Room> fundamentalRooms = new List<Room>();
             // fundamentalRooms.Add(garage);
             // fundamentalRooms.Add(kitchen);
             // fundamentalRooms.Add(bathroom);
             // fundamentalRooms.Add(bedroom);
-            //
-            //
-            // List<Room> placedRooms = new List<Room>();
-            // int index = 0;
-            // int attempts = 0;
-            // while (placedRooms.Count < fundamentalRooms.Count) {
-            //     attempts++;
-            //     
-            //     if (attempts > 1000)
-            //         return false;
-            //     
-            //     Room room = fundamentalRooms[index];
-            //     if (!AddRoomRandomly(room)) {
-            //         foreach (var placedRoom in placedRooms) {
-            //             Destroy(placedRoom);
-            //         }
-            //         placedRooms.Clear();
-            //         index = 0;
-            //         continue;
-            //     }
-            //     placedRooms.Add(room);
-            //     index++;
-            // }
-            //
-            //
-            // Console.Out.WriteLine("Generacion 20%");
-            // if (getFreeM2() > 10) {
-            //     Room bedroomExtra = new Room(6, .3f, false);
-            //     bedroomExtra.Color = Color.Blue;
-            //     bedroomExtra.Text = "bedroom e";
-            //     
-            //     Room almacen = new Room(9, 0f, false);
-            //     bedroomExtra.Color = Color.Blue;
-            //     bedroomExtra.Text = "bat e";
-            //     
-            //     Room bathroomExtra = new Room(2, 1f, false);
-            //     bedroomExtra.Color = Color.Blue;
-            //     bedroomExtra.Text = "bat e";
-            //     
-            //     AddRoomRandomly(bedroomExtra, false);
-            //     AddRoomRandomly(almacen, false);
-            //     AddRoomRandomly(bathroomExtra, false);
-            // }
-
+            
+            // Primera etapa de generacion de habitaciones 
+            List<Room> placedRooms = new List<Room>(); 
+            
+            // Big rooms pass.
+            // Aca se crean habitaciones grandes, llenando el espacio que queda libre
             List<List<(int, int)>> bubbles = GetBubbles();
             foreach (var bubble in bubbles) {
-                Room b1 = new Room(bubble);
-                Room b1_1 = b1.Grow(4, this);
-                // b1.Text = "b1";
-                // TryToPlaceRoom(b1);
-            
-                if (b1_1 != null) {
-                    TryToPlaceRoom(b1_1);
+                Room b = new Room(bubble);
+                List<Room> bRooms = b.Grow(4, this);
+                
+                foreach (var bRoom in bRooms) {
+                    bRoom.Text = "bRoom";
+                    if (TryToPlaceRoom(bRoom))
+                        placedRooms.Add(bRoom);
                 }
             }
             
+            // Big fill rooms pass
+            // Si quedan espacios libres, se crean habitaciones
+            while (GetBubbles().Count >= 1) {
+                Room b = new Room(GetBubbles()[0]);
+                List<Room> bRooms = b.Grow(random.Next(1, 1), this);
+            
+                foreach (var sRoom in bRooms) {
+                    sRoom.Text = "sRoom";
+                    if (TryToPlaceRoom(sRoom))
+                        placedRooms.Add(sRoom);
+                }
+                
+            }
 
+
+            // Hallway maze pass.
+            // Ahora mismo esta to.do lleno, pero, puede que hayan habitaciones muy grandes
+            // El hallway maze pass intenta dividir las habitaciones grandes en 2, poniento un pasillo en el medio
+            foreach (var placedRoom in placedRooms.ToList()) {
+                if ((placedRoom.Height > 6 || placedRoom.Width > 6) &&
+                    placedRoom.points.Count >= livingRoom.points.Count) {
+                    placedRooms.Remove(placedRoom);
+                    Destroy(placedRoom);
+                }
+            }
             
+            bool hasChanged = true;
+            List<List<(int, int)>> bubbles2 = GetBubbles();
+            while (hasChanged) {
+                hasChanged = false;
+
+                foreach (var bubble in bubbles2.ToList()) {
+                    Room b = new Room(bubble);
+                    
+                    List<(int, int)> middles = b.GetMiddles();
+                    // middles.Shuffle();
+                    RayCastResult furthest = null;
+                    foreach (var middle in middles) {
+                        Room point = new Room(1, 1, middle.Item1, middle.Item2, false, Color.Red);
+                        point.Id = 1;
+                        TryToPlaceRoom(point);
+                        
+                        
+                        RayCastResult raycast = Raycast(middle, true, new[] { 1 }, new[] { 3 });
+                        if (raycast == null)
+                            continue;
+                        
+                        if (raycast.distance == 1)
+                            continue;
+                            
+                        if (furthest == null || raycast.distance > furthest.distance) {
+                            furthest = raycast;
+                        }
+                    }
+                    
+                    if (furthest != null) {
+                        Room hallway = furthest.GetAsRoom(true, false);
+                        if (hallway.points.Count == 0)
+                            continue;
+                    
+                        hallway.Color = Color.Brown;
+                        hallway.Id = 3;
+                        hallway.Text = "77";
+                        TryToPlaceRoom(hallway, true);
+                        hasChanged = true;
+                        bubbles2.Remove(bubble);
+                    }
+                }
+            }
             
-            Console.Out.WriteLine("Generacion 1000%%%%%");
+            // Una vez creado el pasillo, se crean habitaciones en los espacios libres
+            while (GetBubbles().Count >= 1) {
+                Room b = new Room(GetBubbles()[0]);
+                b.Text = "b";
+
+                if (b.points.Count >= livingRoom.points.Count) {
+                    
+                    int slice = random.Next(2, 3);
+                    int roomSize = b.Width + b.Height / slice;
+                    
+                    List<Room> bRooms = b.Grow(random.Next(2, 3), this, roomSize);
+                    foreach (var sRoom in bRooms) {
+                        sRoom.Text = "xRoom";
+                        if (TryToPlaceRoom(sRoom))
+                            placedRooms.Add(sRoom);
+                    }
+                }
+                else {
+                    TryToPlaceRoom(b);
+                }
+            }
             
-            
-            // Paso 3: Crear habitaciones desde los pasillos
-            // List<List<(int, int)>> bubbles = GetBubbles();
-            // foreach (var bubble in bubbles) {
-            //     Room room = new Room(bubble);
-            //     if (!CanPlaceRoomAt(room))
-            //         continue;
-            //
-            //     room.Text = "room";
-            //     // TryToPlaceRoom(room);
-            //
-            //     // Paso 4: Dividir habitaciones si es posible
-            //     List<Room> divition = room.Divide(2);
-            //     Console.Out.WriteLine(divition.Count);
-            //     foreach (var room1 in divition) {
-            //         if (!TryToPlaceRoom(room1, true))
-            //             System.Console.WriteLine("No se pudo colocar la habitación");
-            //     }
-            // }
-            
-            
+            UpdateMapPaint();
             return true;
         }
+        
         
         # region Rooms
         public bool AddRoomRandomly(Room room, bool force = false) {
@@ -383,7 +450,7 @@ public class HouseGenerator
                 return false;
             
             foreach (var (dx, dy) in room.points) {
-                tileGrid[dx, dy] = 2;
+                tileGrid[dx, dy] = room.Id;
                 tileRooms[dx, dy] = room;
             }
             
@@ -397,9 +464,9 @@ public class HouseGenerator
                 for (int y = 0; y < tileGrid.GetLength(1); y++) {
                     Room room = getRoom(x, y);
                     if (room != null) {
-                        if (tileGrid[x, y] == 2) {
+                        if (tileGrid[x, y] >= 2) {
                             if (new Point2D((x, y)).DistanceTo(new Point2D(((int, int)) room.GetCenter())) < 1) {
-                                map.Paint(room.Color, x, y, room.Text);
+                                map.Paint(room.Color, x, y, room.Text + $" ({room.Id})");
                             }
                             else {
                                 map.Paint(room.Color, x, y);
@@ -443,6 +510,7 @@ public class HouseGenerator
                 tileGrid[valueTuple.Item1, valueTuple.Item2] = 1;
                 tileRooms[valueTuple.Item1, valueTuple.Item2] = null;
             }
+            UpdateMapPaint();
         }
         
         #endregion
@@ -529,8 +597,6 @@ public class HouseGenerator
                 points = finalPoints;
             }
             
-            int wallSize = points.Count + (tryAvoidingCorners ? 2 : 0);
-            
             Room best = null;
             int bestWallPoints = 0;
          
@@ -607,7 +673,9 @@ public class HouseGenerator
             return tileRooms[x, y];
         }
     }
-    public static void Generate(Map map) {
+    public static void Generate(Map map, int seed) {
+        random = new Random(seed);
+
         int Margin = 2;
         Side enterSide = Side.Top;
         
@@ -631,16 +699,9 @@ public class HouseGenerator
         HouseBuilder houseBuilder = new HouseBuilder(map, tiles, Margin);
         if (!houseBuilder.BuildHouse()) {
             Console.Out.WriteLine("No se pudo generar la casa");
-            map.Generate();
+            // map.Generate();
             return;
         }
-
-
-        // houseBuilder.AddRoom(garage);
-        // houseBuilder.AddRoom(livingRoom);
-        // houseBuilder.AddRoom(kitchen);
-        // houseBuilder.AddRoom(bathroom);
-        // houseBuilder.AddRoom(bedroom);
     }
     
     
