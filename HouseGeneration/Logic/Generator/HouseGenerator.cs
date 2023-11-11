@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
 
@@ -215,6 +216,7 @@ public class HouseGenerator {
             // se inicia la generacion con un living room
             // lo primero, el living mide un "size"% del total de la casa
             float size = 0.2f;
+            int maxLivingRoomSize = 8*8;
             livingRoom = null;
             while (livingRoom == null || !AddRoomRandomly(livingRoom)) {
                 if (size < 0.1f) {
@@ -223,6 +225,9 @@ public class HouseGenerator {
                 
                 int freeM2 = getFreeM2();
                 int roomM2 = (int) (freeM2 * size);
+                if (roomM2 > maxLivingRoomSize)
+                    roomM2 = maxLivingRoomSize;
+                
                 float noSquareness = random.Next(30) / 100f;
                 noSquareness *= (random.Next(20) - 10f)/ 100f; 
                 livingRoom = new Room(roomM2, noSquareness, false, Color.SaddleBrown);
@@ -486,6 +491,7 @@ public class HouseGenerator {
                     }
                 }
             }
+            // Thread.Sleep(100);
         }
 
 
@@ -699,7 +705,7 @@ public class HouseGenerator {
         HouseBuilder houseBuilder = new HouseBuilder(map, tiles, Margin);
         if (!houseBuilder.BuildHouse()) {
             Console.Out.WriteLine("No se pudo generar la casa");
-            // map.Generate();
+            map.Generate(seed+1);
             return;
         }
     }
