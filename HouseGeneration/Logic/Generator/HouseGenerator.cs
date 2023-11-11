@@ -1,83 +1,82 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
 
-namespace HouseGeneration.Logic;
+namespace HouseGeneration.Logic.Generator;
 
 public class HouseGenerator {
 
-    public static Random random;
+    public static Random Random;
     
     public class HouseBuilder {
         
-        private int[,] tileGrid;
+        private int[,] _tileGrid;
         // 0 = outside, 1 = free, 2 = occupied, 3 = occupied_by_living_or_hallway
-        private Room[,] tileRooms;
-        private Room livingRoom;
-        private Map map;
+        private Room[,] _tileRooms;
+        private Room _livingRoom;
+        private Map _map;
         public HouseBuilder(Map map, PolygonGenerator.TileInfo[,] tiles, int margin) {
-            tileGrid = new int[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
-            for (int x = -this.margin; x < tileGrid.GetLength(0) - margin; x++) {
-                for (int y = -this.margin; y < tileGrid.GetLength(1) - margin; y++) {
+            _tileGrid = new int[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
+            for (int x = -this._margin; x < _tileGrid.GetLength(0) - margin; x++) {
+                for (int y = -this._margin; y < _tileGrid.GetLength(1) - margin; y++) {
                     if (x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1)) {
-                        tileGrid[x + margin, y + margin] = -1;
+                        _tileGrid[x + margin, y + margin] = -1;
                         continue;
                     }
 
-                    tileGrid[x + margin, y + margin] = tiles[x, y].IsFilled ? 1 : 0;
+                    _tileGrid[x + margin, y + margin] = tiles[x, y].IsFilled ? 1 : 0;
                 }
             }
             
-            tileRooms = new Room[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
-            this.map = map;
-            this.margin = margin;
+            _tileRooms = new Room[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
+            this._map = map;
+            this._margin = margin;
         }
         
-        private int getTile(int x, int y) {
-            if (x < 0 || x >= tileGrid.GetLength(0) || y < 0 || y >= tileGrid.GetLength(1)) {
+        public int GetTile(int x, int y) {
+            if (x < 0 || x >= _tileGrid.GetLength(0) || y < 0 || y >= _tileGrid.GetLength(1)) {
                 return 0;
             }
-            return tileGrid[x, y];
+            return _tileGrid[x, y];
         }
         
-        private int getTile((int, int) point) {
-            return getTile(point.Item1, point.Item2);
+        public int GetTile((int, int) point) {
+            return GetTile(point.Item1, point.Item2);
         }
         
-        private int getTile(Point2D point) {
-            return getTile(point.X, point.Y);
+        public int GetTile(Point2D point) {
+            return GetTile(point.X, point.Y);
         }
         
-        public int getFreeM2() {
+        public int GetFreeM2() {
             int freeM2 = 0;
-            foreach (var isFree in tileGrid) {
+            foreach (var isFree in _tileGrid) {
                 freeM2 += isFree == 1 ? 1 : 0;
             }
             return freeM2;
         }
 
         public class RayCastResult {
-            public (int, int) root;
-            public (int, int) end;
-            public Side side;
-            public int distance;
+            public (int, int) Root;
+            public (int, int) End;
+            public Side Side;
+            public int Distance;
             public Room GetAsRoom(bool includeIn, bool includeOut) {
                 List<(int, int)> points = new List<(int, int)>();
-                int dx = root.Item1;
-                int dy = root.Item2;
-                for (int i = 0; i < distance; i++) {
+                int dx = Root.Item1;
+                int dy = Root.Item2;
+                for (int i = 0; i < Distance; i++) {
                     points.Add((dx, dy));
-                    dx += (int)side.GetX();
-                    dy += (int)side.GetY();
+                    dx += Side.GetX();
+                    dy += Side.GetY();
                 }
                 if (!includeIn) {
                     points.RemoveAt(0);
                 }
                 if (includeOut) {
-                    points.Add(end);
+                    points.Add(End);
                 }
                 return new Room(points);
             }
@@ -102,20 +101,19 @@ public class HouseGenerator {
                     while (true)
                     {
                         distance++;
-                        int dx = x + (int)(side.GetX() * distance);
-                        int dy = y + (int)(side.GetY() * distance);
+                        int dx = x + side.GetX() * distance;
+                        int dy = y + side.GetY() * distance;
 
-                        if (dx < 0 || dx >= tileGrid.GetLength(0) || dy < 0 || dy >= tileGrid.GetLength(1)) {
+                        if (dx < 0 || dx >= _tileGrid.GetLength(0) || dy < 0 || dy >= _tileGrid.GetLength(1)) {
                             break;
                         }
                         
-                        if (shouldFind.Contains(tileGrid[dx, dy]))
+                        if (shouldFind.Contains(_tileGrid[dx, dy]))
                         {
                             if (findClosest)
                             {
                                 if (distance < bestDistance)
                                 {
-                                    // Console.Out.WriteLine(bestDistance);
                                     bestDistance = distance;
                                     best = ((x, y), (dx, dy), side, distance);
                                 }
@@ -131,7 +129,7 @@ public class HouseGenerator {
                             }
                         }
                         
-                        if (!canTravelThrough.Contains(tileGrid[dx, dy])) {
+                        if (!canTravelThrough.Contains(_tileGrid[dx, dy])) {
                             break;
                         }
                         
@@ -144,10 +142,10 @@ public class HouseGenerator {
             }
 
             return best == default ? null : new RayCastResult() {
-                root = best.Item1,
-                end = best.Item2,
-                side = best.Item3,
-                distance = best.Item4
+                Root = best.Item1,
+                End = best.Item2,
+                Side = best.Item3,
+                Distance = best.Item4
             };
         }
         public RayCastResult Raycast((int, int) start, bool findClosest, int[] canTravelThrough, int[] shouldFind) {
@@ -167,20 +165,19 @@ public class HouseGenerator {
                     int y = start.Item2;
                     
                     distance++;
-                    int dx = x + (int)(side.GetX() * distance);
-                    int dy = y + (int)(side.GetY() * distance);
+                    int dx = x + side.GetX() * distance;
+                    int dy = y + side.GetY() * distance;
 
-                    if (dx < 0 || dx >= tileGrid.GetLength(0) || dy < 0 || dy >= tileGrid.GetLength(1)) {
+                    if (dx < 0 || dx >= _tileGrid.GetLength(0) || dy < 0 || dy >= _tileGrid.GetLength(1)) {
                         break;
                     }
                     
-                    if (shouldFind.Contains(tileGrid[dx, dy]))
+                    if (shouldFind.Contains(_tileGrid[dx, dy]))
                     {
                         if (findClosest)
                         {
                             if (distance < bestDistance)
                             {
-                                // Console.Out.WriteLine(bestDistance);
                                 bestDistance = distance;
                                 best = ((x, y), (dx, dy), side, distance);
                             }
@@ -196,17 +193,17 @@ public class HouseGenerator {
                         }
                     }
                     
-                    if (!canTravelThrough.Contains(tileGrid[dx, dy])) {
+                    if (!canTravelThrough.Contains(_tileGrid[dx, dy])) {
                         break;
                     }
                 }
             }
 
             return best == default ? null : new RayCastResult() {
-                root = best.Item1,
-                end = best.Item2,
-                side = best.Item3,
-                distance = best.Item4
+                Root = best.Item1,
+                End = best.Item2,
+                Side = best.Item3,
+                Distance = best.Item4
             };
         }
 
@@ -217,22 +214,22 @@ public class HouseGenerator {
             // lo primero, el living mide un "size"% del total de la casa
             float size = 0.2f;
             int maxLivingRoomSize = 8*8;
-            livingRoom = null;
-            while (livingRoom == null || !AddRoomRandomly(livingRoom)) {
+            _livingRoom = null;
+            while (_livingRoom == null || !AddRoomRandomly(_livingRoom)) {
                 if (size < 0.1f) {
                     return false;
                 }
                 
-                int freeM2 = getFreeM2();
+                int freeM2 = GetFreeM2();
                 int roomM2 = (int) (freeM2 * size);
                 if (roomM2 > maxLivingRoomSize)
                     roomM2 = maxLivingRoomSize;
                 
-                float noSquareness = random.Next(30) / 100f;
-                noSquareness *= (random.Next(20) - 10f)/ 100f; 
-                livingRoom = new Room(roomM2, noSquareness, false, Color.SaddleBrown);
-                livingRoom.Text = "living";
-                livingRoom.Id = 3;  
+                float noSquareness = Random.Next(30) / 100f;
+                noSquareness *= (Random.Next(20) - 10f)/ 100f; 
+                _livingRoom = new Room(roomM2, noSquareness, false, Color.SaddleBrown);
+                _livingRoom.Text = "living";
+                _livingRoom.Id = 3;  
                 
                 size -= 0.01f;
             }
@@ -240,12 +237,12 @@ public class HouseGenerator {
             
             // Paso 2: Crear pasillos desde el living room
             // Una vez creado el living room, se crean un pasillo desde el living room a la salida mas lejana
-            if (getFreeM2() > 10 * 5) {
-                RayCastResult pasilloPrincipalRaycast = Raycast(livingRoom, false, new[] { 1 }, new[] { -1, 0 });
+            if (GetFreeM2() > 10 * 5) {
+                RayCastResult pasilloPrincipalRaycast = Raycast(_livingRoom, false, new[] { 1 }, new[] { -1, 0 });
                 if (pasilloPrincipalRaycast == null)
                     return false;
                 
-                Room hallway = CreateHallway(livingRoom, pasilloPrincipalRaycast.side, 5, true);
+                Room hallway = CreateHallway(_livingRoom, pasilloPrincipalRaycast.Side, 5, true);
                 if (hallway == null) {
                     return false;
                 }
@@ -257,11 +254,11 @@ public class HouseGenerator {
             
             // Paso 3: Crear pasillo del living a la entrada
             // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
-            RayCastResult hallRaycast = Raycast(livingRoom, true, new[] { 1 }, new[] { -1, 0 });
+            RayCastResult hallRaycast = Raycast(_livingRoom, true, new[] { 1 }, new[] { -1, 0 });
             if (hallRaycast == null)
                 return false;
 
-            if (hallRaycast.distance > 1) {
+            if (hallRaycast.Distance > 1) {
                 Room hall = hallRaycast.GetAsRoom(false, false);
                 hall.Color = Color.Brown;
                 hall.Text = "hall";
@@ -271,9 +268,9 @@ public class HouseGenerator {
             
             // Paso 4: Crear puerta del living al pasillo
             // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
-            Room door = new Room(1,1,hallRaycast.end.Item1, hallRaycast.end.Item2);
-            door.Extend(hallRaycast.side.Invert());
-            door.UnExtend(hallRaycast.side);
+            Room door = new Room(1,1,hallRaycast.End.Item1, hallRaycast.End.Item2);
+            door.Extend(hallRaycast.Side.Invert());
+            door.UnExtend(hallRaycast.Side);
             door.Color = Color.Gray;
             door.Text = "door";
             door.Id = 3;
@@ -324,7 +321,12 @@ public class HouseGenerator {
             // Si quedan espacios libres, se crean habitaciones
             while (GetBubbles().Count >= 1) {
                 Room b = new Room(GetBubbles()[0]);
-                List<Room> bRooms = b.Grow(random.Next(1, 1), this);
+                if (b.points.Count < 4) {
+                    TryToPlaceRoom(b);
+                    continue;
+                }
+                
+                List<Room> bRooms = b.Grow(Random.Next(1, 1), this);
             
                 foreach (var sRoom in bRooms) {
                     sRoom.Text = "sRoom";
@@ -340,7 +342,7 @@ public class HouseGenerator {
             // El hallway maze pass intenta dividir las habitaciones grandes en 2, poniento un pasillo en el medio
             foreach (var placedRoom in placedRooms.ToList()) {
                 if ((placedRoom.Height > 6 || placedRoom.Width > 6) &&
-                    placedRoom.points.Count >= livingRoom.points.Count) {
+                    placedRoom.points.Count >= _livingRoom.points.Count) {
                     placedRooms.Remove(placedRoom);
                     Destroy(placedRoom);
                 }
@@ -367,10 +369,10 @@ public class HouseGenerator {
                         if (raycast == null)
                             continue;
                         
-                        if (raycast.distance == 1)
+                        if (raycast.Distance == 1)
                             continue;
                             
-                        if (furthest == null || raycast.distance > furthest.distance) {
+                        if (furthest == null || raycast.Distance > furthest.Distance) {
                             furthest = raycast;
                         }
                     }
@@ -395,12 +397,12 @@ public class HouseGenerator {
                 Room b = new Room(GetBubbles()[0]);
                 b.Text = "b";
 
-                if (b.points.Count >= livingRoom.points.Count) {
+                if (b.points.Count >= _livingRoom.points.Count) {
                     
-                    int slice = random.Next(2, 3);
+                    int slice = Random.Next(2, 3);
                     int roomSize = b.Width + b.Height / slice;
                     
-                    List<Room> bRooms = b.Grow(random.Next(2, 3), this, roomSize);
+                    List<Room> bRooms = b.Grow(Random.Next(2, 3), this, roomSize);
                     foreach (var sRoom in bRooms) {
                         sRoom.Text = "xRoom";
                         if (TryToPlaceRoom(sRoom))
@@ -410,6 +412,10 @@ public class HouseGenerator {
                 else {
                     TryToPlaceRoom(b);
                 }
+            }
+
+            if (GetFreeM2() != 0) {
+                return false;
             }
             
             UpdateMapPaint();
@@ -422,9 +428,9 @@ public class HouseGenerator {
             // Random Approach
             int attempts = 10;
             for (int i = 0; i < attempts; i++) {
-                int x = random.Next(tileGrid.GetLength(0));
-                int y = random.Next(tileGrid.GetLength(1));
-                if (tileGrid[x, y] == 1) {
+                int x = Random.Next(_tileGrid.GetLength(0));
+                int y = Random.Next(_tileGrid.GetLength(1));
+                if (_tileGrid[x, y] == 1) {
                     room.MoveTo(x, y);
                     if (!TryToPlaceRoom(room))
                         continue;
@@ -455,38 +461,38 @@ public class HouseGenerator {
                 return false;
             
             foreach (var (dx, dy) in room.points) {
-                tileGrid[dx, dy] = room.Id;
-                tileRooms[dx, dy] = room;
+                _tileGrid[dx, dy] = room.Id;
+                _tileRooms[dx, dy] = room;
             }
             
             UpdateMapPaint();
             return true;
         }
 
-        int margin = 2;
+        int _margin = 2;
         private void UpdateMapPaint() {
-            for (int x = 0; x < tileGrid.GetLength(0); x++) {
-                for (int y = 0; y < tileGrid.GetLength(1); y++) {
-                    Room room = getRoom(x, y);
+            for (int x = 0; x < _tileGrid.GetLength(0); x++) {
+                for (int y = 0; y < _tileGrid.GetLength(1); y++) {
+                    Room room = RetRoom(x, y);
                     if (room != null) {
-                        if (tileGrid[x, y] >= 2) {
+                        if (_tileGrid[x, y] >= 2) {
                             if (new Point2D((x, y)).DistanceTo(new Point2D(((int, int)) room.GetCenter())) < 1) {
-                                map.Paint(room.Color, x, y, room.Text + $" ({room.Id})");
+                                _map.Paint(room.Color, x, y, room.Text + $" ({room.Id})");
                             }
                             else {
-                                map.Paint(room.Color, x, y);
+                                _map.Paint(room.Color, x, y);
                             }
                         }
                         else {
-                            map.Paint(Color.Green, x, y);
+                            _map.Paint(Color.Green, x, y);
                         }
                     }
                     else {
-                        if (tileGrid[x, y] == -1 || tileGrid[x, y] == 0) {
-                            map.Paint(Color.Green, x, y);
+                        if (_tileGrid[x, y] == -1 || _tileGrid[x, y] == 0) {
+                            _map.Paint(Color.Green, x, y);
                         }
                         else {
-                            map.Paint(Color.Black, x, y);
+                            _map.Paint(Color.Black, x, y);
                         }
                     }
                 }
@@ -498,12 +504,11 @@ public class HouseGenerator {
         public bool CanPlaceRoom(Room room) {
             foreach (var (dx, dy) in room.points) {
                 try {
-                    if (tileGrid[dx, dy] != 1) {
+                    if (_tileGrid[dx, dy] != 1) {
                         return false;
                     }
                 }
-                catch (Exception e)
-                {
+                catch (Exception) {
                     return false;
                 }
             }
@@ -513,8 +518,8 @@ public class HouseGenerator {
         public void Destroy(Room room)
         {
             foreach (var valueTuple in room.points) {
-                tileGrid[valueTuple.Item1, valueTuple.Item2] = 1;
-                tileRooms[valueTuple.Item1, valueTuple.Item2] = null;
+                _tileGrid[valueTuple.Item1, valueTuple.Item2] = 1;
+                _tileRooms[valueTuple.Item1, valueTuple.Item2] = null;
             }
             UpdateMapPaint();
         }
@@ -522,14 +527,6 @@ public class HouseGenerator {
         #endregion
         
         #region Holes
-
-        private int RecursivePaint(int[,] tiles, int x, int y) {
-            List<(int, int)> freeHoles = GetFreeHoles(tiles, x, y, new List<(int, int)>());
-            foreach (var freeHole in freeHoles) {
-                tiles[freeHole.Item1, freeHole.Item2] = 6;
-            }
-            return freeHoles.Count;
-        }
         
         private List<(int, int)> GetFreeHoles(int[,] tiles, int x, int y, List<(int, int)> added) {
             if (x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1)) {
@@ -550,29 +547,17 @@ public class HouseGenerator {
             
             return added;
         }
-
-        private List<int> GetFreeHolesSizes() {
-            List<int> freeHolesSizes = new List<int>();
-            int[,] tiles = this.tileGrid.Clone() as int[,];
-            
-            for (int x = 0; x < tileGrid.GetLength(0); x++) {
-                for (int y = 0; y < tileGrid.GetLength(1); y++) {
-                    if (tiles[x, y] == 1) {
-                        int freeHoles = RecursivePaint(tiles, x, y);
-                        freeHolesSizes.Add(freeHoles);
-                    }
-                }
-            }
-            return freeHolesSizes;
-        }
-
         public List<List<(int, int)>> GetBubbles() {
             List<List<(int, int)>> bubbles = new List<List<(int, int)>>();
-            int[,] tiles = this.tileGrid.Clone() as int[,];
+            int[,] tiles = this._tileGrid.Clone() as int[,];
+            
+            if (tiles == null) {
+                return bubbles;
+            }
             
             // use method GetFreeHoles to get the bubbles (all different free holes)
-            for (int x = 0; x < tileGrid.GetLength(0); x++) {
-                for (int y = 0; y < tileGrid.GetLength(1); y++) {
+            for (int x = 0; x < _tileGrid.GetLength(0); x++) {
+                for (int y = 0; y < _tileGrid.GetLength(1); y++) {
                     if (tiles[x, y] == 1) {
                         List<(int, int)> bubble = GetFreeHoles(tiles, x, y, new List<(int, int)>());
                         bubbles.Add(bubble);
@@ -625,10 +610,10 @@ public class HouseGenerator {
                 Point2D roomTip = new Point2D(hallway.GetPoinsOfSide(facingSide)[0]);
                 Side pSide1 = facingSide.GetPerpendicularSide(false);
                 Side pSide2 = facingSide.GetPerpendicularSide(true);
-                if (getTile(roomTip.Extend(pSide1)) == 0 || getTile(roomTip.Extend(pSide2)) == 0) 
+                if (GetTile(roomTip.Extend(pSide1)) == 0 || GetTile(roomTip.Extend(pSide2)) == 0) 
                     wallPoints = (int) (wallPoints * .75f);
 
-                if (TryToPlaceRoom(hallway, false)) {
+                if (TryToPlaceRoom(hallway)) {
                     List<List<(int, int)>> border = GetBubbles();
                     // Get smallest bubble
                     int smallestBubble = int.MaxValue;
@@ -642,10 +627,8 @@ public class HouseGenerator {
 
                 
                 if (bestWallPoints == 0 || wallPoints >= bestWallPoints) {
-                    if (bestWallPoints == wallPoints && random.Next(2) == 0)
+                    if (bestWallPoints == wallPoints && Random.Next(2) == 0)
                             continue;
-                    
-
                     
                     best = hallway;
                     bestWallPoints = wallPoints;
@@ -657,17 +640,16 @@ public class HouseGenerator {
                 Side pSide1 = facingSide.GetPerpendicularSide(false);
                 Side pSide2 = facingSide.GetPerpendicularSide(true);
 
-                if (getTile(roomTip.Extend(pSide1)) == 0 && getTile(roomTip.Extend(pSide2)) == 0 && getTile(roomTip.Extend(facingSide)) == 0) {
+                if (GetTile(roomTip.Extend(pSide1)) == 0 && GetTile(roomTip.Extend(pSide2)) == 0 && GetTile(roomTip.Extend(facingSide)) == 0) {
                     best.UnExtend(facingSide);
                     
                     // todo mejorar esto con matematica
                     try {
-                        tileGrid[roomTip.Extend(facingSide).X, roomTip.Extend(facingSide).Y] = 0;
-                    }catch (Exception e) {
-                        // Console.Out.WriteLine("Error: " + e);
+                        _tileGrid[roomTip.Extend(facingSide).X, roomTip.Extend(facingSide).Y] = 0;
+                    }catch (Exception) {
+                        
                     }
 
-                    Console.Out.WriteLine("Refactor: " + roomTip.X + ", " + roomTip.Y);
                 }
             }
             
@@ -675,34 +657,30 @@ public class HouseGenerator {
         }
         
         #endregion
-        public Room getRoom(int x, int y) {
-            return tileRooms[x, y];
+        public Room RetRoom(int x, int y) {
+            return _tileRooms[x, y];
         }
     }
     public static void Generate(Map map, int seed) {
-        random = new Random(seed);
+        Random = new Random(seed);
 
-        int Margin = 2;
-        Side enterSide = Side.Top;
+        int margin = 2;
         
-        int random100 = random.Next(100);
+        int random100 = Random.Next(100);
         
-        int sx = map.x - Margin * 2;
-        int sy = map.y - Margin * 2;
+        int sx = map.x - margin * 2;
+        int sy = map.y - margin * 2;
 
         PolygonGenerator.TileInfo[,] tiles;
 
-        // if (random100 < 33) {
-        //     tiles = PolygonGenerator.CreatePolygon(sx, sy, 0.2);
-        // }
-        // else if (random100 < 66) {
-        //     tiles = PolygonGenerator.CreatePolygon(sx, sy, 0.05);
-        // }
-        // else {
+        if (random100 < 33) {
+            tiles = PolygonGenerator.CreatePolygon(sx, sy, 0.2);
+        }
+        else {
             tiles = PolygonGenerator.CreatePolygon(sx, sy, 0);
-        // }
+        }
         
-        HouseBuilder houseBuilder = new HouseBuilder(map, tiles, Margin);
+        HouseBuilder houseBuilder = new HouseBuilder(map, tiles, margin);
         if (!houseBuilder.BuildHouse()) {
             Console.Out.WriteLine("No se pudo generar la casa");
             map.Generate(seed+1);

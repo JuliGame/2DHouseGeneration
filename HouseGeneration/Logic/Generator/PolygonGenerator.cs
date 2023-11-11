@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HouseGeneration.Logic.Generator;
 
 namespace HouseGeneration.Logic;
 
@@ -131,7 +132,7 @@ public class PolygonGenerator
     {
         var corners = GetCorners(tiles);
         
-        var index = HouseGenerator.random.Next(corners.Count);
+        var index = HouseGenerator.Random.Next(corners.Count);
         
         return corners[index];
     }

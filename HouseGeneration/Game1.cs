@@ -37,7 +37,7 @@ public class Game1 : Game
     int wallWidth;
     
     Map map;
-    int seed = 0;
+    int seed = 1;
     protected override void LoadContent() {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 

@@ -1,3 +1,4 @@
+using HouseGeneration.Logic.Generator;
 using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
 

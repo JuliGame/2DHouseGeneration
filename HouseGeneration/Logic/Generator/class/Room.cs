@@ -37,7 +37,7 @@ public class Room {
             Color = color;
         
         else 
-            Color = Color.FromNonPremultiplied(HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), 255);
+            Color = Color.FromNonPremultiplied(HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), 255);
     }
 
     public Room(int area, float noSquareness, bool mustBeAtEdge = false, Color color = default) {
@@ -70,7 +70,7 @@ public class Room {
             Width = area / Height;
         }
 
-        if (HouseGenerator.random.NextDouble() < 0.5)
+        if (HouseGenerator.Random.NextDouble() < 0.5)
         {
             (Width, Height) = (Height, Width);
         }
@@ -92,7 +92,7 @@ public class Room {
         }
         else
         {
-            Color = Color.FromNonPremultiplied(HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), 255);
+            Color = Color.FromNonPremultiplied(HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), 255);
         }
     }
     
@@ -109,7 +109,7 @@ public class Room {
         }
         else
         {
-            Color = Color.FromNonPremultiplied(HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), HouseGenerator.random.Next(255), 255);
+            Color = Color.FromNonPremultiplied(HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), 255);
         }
     }
     
@@ -286,7 +286,7 @@ public class Room {
         if (rooms.Count > maxRooms) {
             int diff = rooms.Count - maxRooms;
             for (int i = 0; i < diff; i++) {
-                rooms.RemoveAt(HouseGenerator.random.Next(rooms.Count));
+                rooms.RemoveAt(HouseGenerator.Random.Next(rooms.Count));
             }
         }
         
