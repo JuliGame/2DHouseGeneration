@@ -52,9 +52,9 @@ public class Game1 : Game
         
         // map = new Map(50, 40);
         
-        map = new Map(25, 18);
+        // map = new Map(25, 18);
         // map = new Map(17, 12);
-        // map = new Map(12, 8);
+        map = new Map(12, 8);
         Thread mapGeneratorThread = new Thread(() => {
             map.Generate(seed);
         });

@@ -76,8 +76,4 @@ public class Map
     public Wall GetWall(int x, int y) {
         return walls[x, y];
     }
-
-    public void Paint(Room color) {
-        
-    }
 }

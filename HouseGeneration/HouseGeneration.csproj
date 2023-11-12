@@ -24,6 +24,9 @@
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303"/>
         <PackageReference Include="SharpNoise" Version="0.12.1.1" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Logic\Generator\class\RoomTypes\" />
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>
         <Exec Command="dotnet tool restore"/>

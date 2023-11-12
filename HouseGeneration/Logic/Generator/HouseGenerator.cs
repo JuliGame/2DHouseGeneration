@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
 
@@ -233,6 +234,8 @@ public class HouseGenerator {
                 
                 size -= 0.01f;
             }
+
+            
             
             
             // Paso 2: Crear pasillos desde el living room
@@ -251,7 +254,6 @@ public class HouseGenerator {
                 hallway.Id = 3;
                 TryToPlaceRoom(hallway, true);
             }
-            
             // Paso 3: Crear pasillo del living a la entrada
             // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
             RayCastResult hallRaycast = Raycast(_livingRoom, true, new[] { 1 }, new[] { -1, 0 });
@@ -280,25 +282,7 @@ public class HouseGenerator {
             // todo crear AbstractRoom que sirva para tener info de la room pero en si no exista.
             // muy util para generar y hacer reglas y pelotudeces.
             // todo hacer generacion de habitaciones con un wave function collapse y las reglas de las habitaciones
-
-            // Room garage = new Room(22, .2f, true);
-            // Room kitchen = new Room(8, .3f, false);
-            // Room bathroom = new Room(4, .3f, false);
-            // Room bedroom = new Room(8, .3f, false);
-            // garage.Color = Color.Gray;
-            // garage.Text = "garage";
-            // kitchen.Color = Color.Yellow;
-            // kitchen.Text = "kitchen";
-            // bathroom.Color = Color.Pink;
-            // bathroom.Text = "bathroom";
-            // bedroom.Color = Color.Blue;
-            // bedroom.Text = "bedroom";
-            //
-            // List<Room> fundamentalRooms = new List<Room>();
-            // fundamentalRooms.Add(garage);
-            // fundamentalRooms.Add(kitchen);
-            // fundamentalRooms.Add(bathroom);
-            // fundamentalRooms.Add(bedroom);
+            
             
             // Primera etapa de generacion de habitaciones 
             List<Room> placedRooms = new List<Room>(); 
@@ -322,7 +306,8 @@ public class HouseGenerator {
             while (GetBubbles().Count >= 1) {
                 Room b = new Room(GetBubbles()[0]);
                 if (b.points.Count < 4) {
-                    TryToPlaceRoom(b);
+                    if (TryToPlaceRoom(b))
+                        placedRooms.Add(b);
                     continue;
                 }
                 
@@ -409,15 +394,43 @@ public class HouseGenerator {
                             placedRooms.Add(sRoom);
                     }
                 }
-                else {
-                    TryToPlaceRoom(b);
+                else {                        
+                    if (TryToPlaceRoom(b))
+                        placedRooms.Add(b);
                 }
             }
 
             if (GetFreeM2() != 0) {
                 return false;
             }
+
+            HouseRoomAssigner houseRoomAssigner = new HouseRoomAssigner(this);
+            List<HouseRoomAssigner.RoomInfo> succedRooms = houseRoomAssigner.Assign(placedRooms);
             
+            if (succedRooms == null) {
+                return false;
+            }
+            
+            foreach (var placedRoom in placedRooms) {
+                Destroy(placedRoom);
+            }
+            
+            foreach (var roomInfo in succedRooms) {
+                roomInfo.Room.Text = roomInfo.RoomType.ToString();
+                TryToPlaceRoom(roomInfo.Room, true);
+            }
+
+            
+            foreach (var roomInfo in succedRooms) {
+                List<Side> sides =  new List<Side>(){Side.Top, Side.Right, Side.Bottom, Side.Left};
+                foreach (var side in sides) {
+                    foreach (var point in roomInfo.Room.GetPoinsOfSide(side)) {
+                        _map.Paint(Color.Black, point.Item1, point.Item2, side);                    
+                    }
+                }
+            }
+            
+            Console.Out.WriteLine("Generation completerd");
             UpdateMapPaint();
             return true;
         }
@@ -470,7 +483,7 @@ public class HouseGenerator {
         }
 
         int _margin = 2;
-        private void UpdateMapPaint() {
+        public void UpdateMapPaint() {
             for (int x = 0; x < _tileGrid.GetLength(0); x++) {
                 for (int y = 0; y < _tileGrid.GetLength(1); y++) {
                     Room room = RetRoom(x, y);
@@ -497,7 +510,7 @@ public class HouseGenerator {
                     }
                 }
             }
-            // Thread.Sleep(100);
+            // Thread.Sleep(250);
         }
 
 
@@ -683,7 +696,7 @@ public class HouseGenerator {
         HouseBuilder houseBuilder = new HouseBuilder(map, tiles, margin);
         if (!houseBuilder.BuildHouse()) {
             Console.Out.WriteLine("No se pudo generar la casa");
-            map.Generate(seed+1);
+            map.Generate(Random.Next());
             return;
         }
     }
