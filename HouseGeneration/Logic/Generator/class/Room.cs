@@ -112,12 +112,15 @@ public class Room {
             Color = Color.FromNonPremultiplied(HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), HouseGenerator.Random.Next(255), 255);
         }
     }
-    
 
-    public List<(int, int)> GetPoinsOfSide(Side side) {
+
+    public List<(int, int)> GetPoinsOfSide(Side side)
+    {
         List<(int, int)> finalPoints = new List<(int, int)>();
 
-        switch (side) {
+
+        switch (side)
+        {
             case Side.Right:
                 for (int y = points.Min(p => p.Item2); y <= points.Max(p => p.Item2); y++)
                 {
@@ -150,7 +153,7 @@ public class Room {
 
                 break;
         }
-
+    
         return finalPoints;
     }
 

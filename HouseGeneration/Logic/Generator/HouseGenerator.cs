@@ -236,7 +236,7 @@ public class HouseGenerator {
             }
 
             
-            
+            List<Room> hallways = new List<Room>();
             
             // Paso 2: Crear pasillos desde el living room
             // Una vez creado el living room, se crean un pasillo desde el living room a la salida mas lejana
@@ -245,14 +245,15 @@ public class HouseGenerator {
                 if (pasilloPrincipalRaycast == null)
                     return false;
                 
-                Room hallway = CreateHallway(_livingRoom, pasilloPrincipalRaycast.Side, 5, true);
-                if (hallway == null) {
+                Room mainHallway = CreateHallway(_livingRoom, pasilloPrincipalRaycast.Side, 5, true);
+                if (mainHallway == null) {
                     return false;
                 }
                 
-                hallway.Color = Color.Brown;
-                hallway.Id = 3;
-                TryToPlaceRoom(hallway, true);
+                mainHallway.Color = Color.Brown;
+                mainHallway.Id = 3;
+                TryToPlaceRoom(mainHallway, true);
+                hallways.Add(mainHallway);
             }
             // Paso 3: Crear pasillo del living a la entrada
             // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
@@ -260,30 +261,15 @@ public class HouseGenerator {
             if (hallRaycast == null)
                 return false;
 
+            Room hall = null;
             if (hallRaycast.Distance > 1) {
-                Room hall = hallRaycast.GetAsRoom(false, false);
+                hall = hallRaycast.GetAsRoom(false, false);
                 hall.Color = Color.Brown;
                 hall.Text = "hall";
                 hall.Id = 3;
                 TryToPlaceRoom(hall, true);
             }
-            
-            // Paso 4: Crear puerta del living al pasillo
-            // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
-            Room door = new Room(1,1,hallRaycast.End.Item1, hallRaycast.End.Item2);
-            door.Extend(hallRaycast.Side.Invert());
-            door.UnExtend(hallRaycast.Side);
-            door.Color = Color.Gray;
-            door.Text = "door";
-            door.Id = 3;
-            TryToPlaceRoom(door, true);
-            
-            
-            // todo crear AbstractRoom que sirva para tener info de la room pero en si no exista.
-            // muy util para generar y hacer reglas y pelotudeces.
-            // todo hacer generacion de habitaciones con un wave function collapse y las reglas de las habitaciones
-            
-            
+   
             // Primera etapa de generacion de habitaciones 
             List<Room> placedRooms = new List<Room>(); 
             
@@ -363,16 +349,17 @@ public class HouseGenerator {
                     }
                     
                     if (furthest != null) {
-                        Room hallway = furthest.GetAsRoom(true, false);
-                        if (hallway.points.Count == 0)
+                        Room dividerHallway = furthest.GetAsRoom(true, false);
+                        if (dividerHallway.points.Count == 0)
                             continue;
                     
-                        hallway.Color = Color.Brown;
-                        hallway.Id = 3;
-                        hallway.Text = "77";
-                        TryToPlaceRoom(hallway, true);
+                        dividerHallway.Color = Color.Brown;
+                        dividerHallway.Id = 3;
+                        dividerHallway.Text = "77";
+                        TryToPlaceRoom(dividerHallway, true);
                         hasChanged = true;
                         bubbles2.Remove(bubble);
+                        hallways.Add(dividerHallway);
                     }
                 }
             }
@@ -403,9 +390,30 @@ public class HouseGenerator {
             if (GetFreeM2() != 0) {
                 return false;
             }
+            
+            
+            List<HouseRoomAssigner.RoomInfo> alreadyPlaced = new List<HouseRoomAssigner.RoomInfo>();
+            alreadyPlaced.Add( new HouseRoomAssigner.RoomInfo() {
+                RoomType = RoomType.LivingRoom,
+                Room = _livingRoom,
+                IsAlreadyPlaced = true
+            });
+            if (hall != null)
+                alreadyPlaced.Add( new HouseRoomAssigner.RoomInfo() {
+                    RoomType = RoomType.Hall,
+                    Room = hall,
+                    IsAlreadyPlaced = true
+                });
+            foreach (var hallway in hallways) {
+                alreadyPlaced.Add( new HouseRoomAssigner.RoomInfo() {
+                    RoomType = RoomType.Hallway,
+                    Room = hallway,
+                    IsAlreadyPlaced = true
+                });
+            }
 
             HouseRoomAssigner houseRoomAssigner = new HouseRoomAssigner(this);
-            List<HouseRoomAssigner.RoomInfo> succedRooms = houseRoomAssigner.Assign(placedRooms);
+            List<HouseRoomAssigner.RoomInfo> succedRooms = houseRoomAssigner.Assign(placedRooms, alreadyPlaced);
             
             if (succedRooms == null) {
                 return false;
@@ -417,17 +425,71 @@ public class HouseGenerator {
             
             foreach (var roomInfo in succedRooms) {
                 roomInfo.Room.Text = roomInfo.RoomType.ToString();
+                roomInfo.Room.Text += $" \n{roomInfo.Neighbours.Count}";
                 TryToPlaceRoom(roomInfo.Room, true);
             }
 
+            
+            Dictionary<(Object, Object), WallInfo> wallInfos = new Dictionary<(Object, Object), WallInfo>();
             
             foreach (var roomInfo in succedRooms) {
                 List<Side> sides =  new List<Side>(){Side.Top, Side.Right, Side.Bottom, Side.Left};
                 foreach (var side in sides) {
                     foreach (var point in roomInfo.Room.GetPoinsOfSide(side)) {
-                        _map.Paint(Color.Black, point.Item1, point.Item2, side);                    
+                        Room room1 = roomInfo.Room;
+                        Room room2 = GetRoom(point.Item1 + side.GetX(), point.Item2 + side.GetY());
+
+                        
+                        (int, int) wallPoint = (point.Item1 * 2 + 1 + side.GetX(), point.Item2 * 2 + 1 + side.GetY());
+                        object secondKey;
+                        if (room2 != null)
+                            secondKey = room2;
+                        else
+                            secondKey = side;
+                        
+                        if (room1 == room2)
+                            continue;
+                        
+                        if (wallInfos.ContainsKey((room1, secondKey))) {
+                            if (wallInfos[(room1, secondKey)].Points.Contains(wallPoint))
+                                continue;
+                            
+                            wallInfos[(room1, secondKey)].Points.Add(wallPoint);
+                            continue;
+                        }
+                        if (wallInfos.ContainsKey((secondKey, room1))) {
+                            if (wallInfos[(secondKey, room1)].Points.Contains(wallPoint))
+                                continue;
+                            
+                            wallInfos[(secondKey, room1)].Points.Add(wallPoint);
+                            continue;
+                        }
+                        
+
+                        WallInfo wallInfo = new WallInfo();
+                        wallInfo.Parent = roomInfo;
+                        wallInfo.Horizontal = side == Side.Top || side == Side.Bottom;
+                        wallInfo.Child = null;
+                        wallInfo.Points.Add(wallPoint);
+                        if (room2 != null) 
+                            wallInfo.Child = succedRooms.Find(r => r.Room == room2);
+                        
+                        wallInfos.Add((room1, secondKey), wallInfo);
                     }
                 }
+            }
+            
+            foreach (var keyValuePair in wallInfos) {
+                WallInfo wallInfo = keyValuePair.Value;
+                
+                Room room1 = wallInfo.Parent.Room;
+                Room room2 = wallInfo.Child?.Room;
+                
+                wallInfo.PaintWalls(_map);
+                if (room2 == null)
+                    continue;
+                
+                wallInfo.MakeDoorInMiddle(_map);
             }
             
             Console.Out.WriteLine("Generation completerd");
@@ -486,7 +548,7 @@ public class HouseGenerator {
         public void UpdateMapPaint() {
             for (int x = 0; x < _tileGrid.GetLength(0); x++) {
                 for (int y = 0; y < _tileGrid.GetLength(1); y++) {
-                    Room room = RetRoom(x, y);
+                    Room room = GetRoom(x, y);
                     if (room != null) {
                         if (_tileGrid[x, y] >= 2) {
                             if (new Point2D((x, y)).DistanceTo(new Point2D(((int, int)) room.GetCenter())) < 1) {
@@ -510,7 +572,7 @@ public class HouseGenerator {
                     }
                 }
             }
-            // Thread.Sleep(250);
+            // Thread.Sleep(100);
         }
 
 
@@ -670,7 +732,7 @@ public class HouseGenerator {
         }
         
         #endregion
-        public Room RetRoom(int x, int y) {
+        public Room GetRoom(int x, int y) {
             return _tileRooms[x, y];
         }
     }

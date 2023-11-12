@@ -68,6 +68,9 @@ public class Map
         }
         walls[wallX, wallY].Color = color;
     }
+    public void PaintWall(Color color, int wallX, int wallY) {
+        walls[wallX, wallY].Color = color;
+    }
     
     public Tile GetTile(int x, int y) {
         return tiles[x, y];

@@ -26,9 +26,10 @@ public class HouseRoomAssigner
         public Room Group;
         public RoomType RoomType = RoomType.Other;
         public bool IsOnEdge;
+        public bool IsAlreadyPlaced = false;
     }
 
-    public List<RoomInfo> Assign(List<Room> rooms) {
+    public List<RoomInfo> Assign(List<Room> rooms, List<RoomInfo> alreadyPlaced) {
         // Groups are the rooms that are connected to each other
         List<RoomInfo> roomInfos = new List<RoomInfo>();
         foreach (var room in rooms) {
@@ -37,16 +38,9 @@ public class HouseRoomAssigner
             roomInfos.Add(roomInfo);
         }
         
-        // List<List<RoomInfo>> groups = GetGroups(roomInfos);
-        // Console.Out.WriteLine("Groups: " + groups.Count);
-        // foreach (var group in groups) {
-        //     List<(int, int)> points = new List<(int, int)>();
-        //     foreach (var roomInfo in group) {
-        //         foreach (var point in roomInfo.Room.points) {
-        //             points.Add(point);
-        //         }
-        //     }
-        // }
+        roomInfos.AddRange(alreadyPlaced);
+        SetGroupsAndNeighbours(roomInfos);
+
         
         PlaceRoom(new AbstractRoom(RoomType.Kitchen, 6, .3f, false));
         PlaceRoom(new AbstractRoom(RoomType.Bathroom, 2, .2f, false));
@@ -90,8 +84,11 @@ public class HouseRoomAssigner
         var roomToPlace = roomsToPlace[currentRoomIndex];
 
         // Try placing the current room at each available position
-        for (int i = 0; i < availableRooms.Count; i++)
-        {
+        for (int i = 0; i < availableRooms.Count; i++) {
+            
+            if (availableRooms[i].IsAlreadyPlaced)
+                continue;
+            
             if (CanBePlaced(roomToPlace, availableRooms[i]))
             {
                 // Temporarily place the room
@@ -151,7 +148,7 @@ public class HouseRoomAssigner
         return false;
     }
 
-    public List<List<RoomInfo>> GetGroups(List<RoomInfo> rooms)
+    public List<List<RoomInfo>> SetGroupsAndNeighbours(List<RoomInfo> rooms)
     {
         List<List<RoomInfo>> groups = new List<List<RoomInfo>>();
         foreach (var roomInfo in rooms)

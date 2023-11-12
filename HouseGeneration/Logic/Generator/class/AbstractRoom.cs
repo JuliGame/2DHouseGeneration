@@ -1,18 +1,6 @@
 namespace HouseGeneration.Logic.Generator.@class;
 
 
-public enum RoomType {
-    Hallway,
-    LivingRoom,
-    Corridor,
-    Stairs,
-    Kitchen,
-    Bathroom,
-    Bedroom,
-    Garage,
-    Other
-}
-
 public struct AbstractRoom {
     public int Area;
     public int AreaDifferenceAllowed;
@@ -26,6 +14,8 @@ public struct AbstractRoom {
     
     public RoomType[] AvoidRoomTypes;
     public RoomType[] MergeWith;
+    
+    public bool IsDoorSatisfied = false;
 
     public AbstractRoom(RoomType roomType, int area, float squareness, bool hasToBeOnEdge) {
         RoomType = roomType;
