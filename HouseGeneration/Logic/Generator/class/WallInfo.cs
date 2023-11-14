@@ -51,8 +51,6 @@ public class WallInfo {
         if (end == Length)
             end--;
 
-        Console.Out.WriteLine(Length);
-        Console.Out.WriteLine("start = {0}, end = {1}", start, end);
         for (int i = start; i <= end; i++) {
             if (i == start || i == end) {
                 map.PaintWall(Color.Black, Points[i].Item1, Points[i].Item2, true, i == start);
@@ -77,7 +75,7 @@ public class WallInfo {
         }
     }
 
-    public void MakeWallsAndDoors(Map map) {
+    public void MakeWallsAndDoors(Map map, HouseGenerator.HouseBuilder houseGenerator) {
         
         if (Child == null) 
             MakeAllWalls(map, 4);
@@ -162,10 +160,31 @@ public class WallInfo {
         }
         
         
-        if (hasConnectionWithHallway) {
-            if (Parent.RoomType == RoomType.Hallway || Child.RoomType == RoomType.Hallway)
-                MakeDoorInMiddle(map);
+        if (Parent.RoomType == RoomType.Hallway || Child.RoomType == RoomType.Hallway) {
+            (int, int) HallwayPrefereedPosition;
+            if (Parent.RoomType == RoomType.Hallway) {
+                HallwayPrefereedPosition = Parent.PreferredDoorPosition;
+            }
+            else {
+                HallwayPrefereedPosition = Child.PreferredDoorPosition;
+            }
+            System.Console.WriteLine("HallwayPrefereedPosition = {0}", HallwayPrefereedPosition);
             
+            Point2D point2D = new Point2D((HallwayPrefereedPosition.Item1 * 2 + 1, HallwayPrefereedPosition.Item2 * 2 + 1));
+            foreach (var valueTuple in Points) {
+                Point2D point2D1 = new Point2D(valueTuple.Item1, valueTuple.Item2);
+                if (point2D.DistanceTo(point2D1) < 2) {
+                    map.PaintWall(Color.Yellow, valueTuple.Item1, valueTuple.Item2);
+                    
+                    if (Length < 7)
+                        return;
+                    
+                    MakeDoorInMiddle(map);
+                }
+            }
+        }
+            
+        if (hasConnectionWithHallway) {
             return;
         }
         

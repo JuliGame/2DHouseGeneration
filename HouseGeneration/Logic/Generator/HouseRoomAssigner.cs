@@ -28,6 +28,7 @@ public class HouseRoomAssigner
         public bool IsOnEdge;
         public bool IsAlreadyPlaced = false;
         public AbstractRoom AbstractRoom;
+        public (int, int) PreferredDoorPosition;
     }
 
     private List<RoomInfo> _placedRooms;

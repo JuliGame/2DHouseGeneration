@@ -237,6 +237,7 @@ public class HouseGenerator {
 
             
             List<Room> hallways = new List<Room>();
+            Dictionary<Room, (int, int)> hallwaysEnds = new Dictionary<Room, (int, int)>();
             
             // Paso 2: Crear pasillos desde el living room
             // Una vez creado el living room, se crean un pasillo desde el living room a la salida mas lejana
@@ -254,6 +255,7 @@ public class HouseGenerator {
                 mainHallway.Id = 3;
                 TryToPlaceRoom(mainHallway, true);
                 hallways.Add(mainHallway);
+                hallwaysEnds.Add(mainHallway, pasilloPrincipalRaycast.End);
             }
             // Paso 3: Crear pasillo del living a la entrada
             // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
@@ -360,6 +362,7 @@ public class HouseGenerator {
                         hasChanged = true;
                         bubbles2.Remove(bubble);
                         hallways.Add(dividerHallway);
+                        hallwaysEnds.Add(dividerHallway, furthest.End);
                     }
                 }
             }
@@ -408,7 +411,8 @@ public class HouseGenerator {
                 alreadyPlaced.Add( new HouseRoomAssigner.RoomInfo() {
                     RoomType = RoomType.Hallway,
                     Room = hallway,
-                    IsAlreadyPlaced = true
+                    IsAlreadyPlaced = true,
+                    PreferredDoorPosition = hallway.points[0]
                 });
             }
 
@@ -484,10 +488,9 @@ public class HouseGenerator {
                 Room room1 = wallInfo.Parent.Room;
                 Room room2 = wallInfo.Child?.Room;
                 
-                wallInfo.MakeWallsAndDoors(_map);
+                wallInfo.MakeWallsAndDoors(_map, this);
             }
             
-            Console.Out.WriteLine("Generation completerd");
             UpdateMapPaint();
 
             // _map.PrintWalls();
