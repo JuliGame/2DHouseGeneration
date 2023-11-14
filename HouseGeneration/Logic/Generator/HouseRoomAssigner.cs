@@ -27,8 +27,10 @@ public class HouseRoomAssigner
         public RoomType RoomType = RoomType.Other;
         public bool IsOnEdge;
         public bool IsAlreadyPlaced = false;
+        public AbstractRoom AbstractRoom;
     }
 
+    private List<RoomInfo> _placedRooms;
     public List<RoomInfo> Assign(List<Room> rooms, List<RoomInfo> alreadyPlaced) {
         // Groups are the rooms that are connected to each other
         List<RoomInfo> roomInfos = new List<RoomInfo>();
@@ -41,19 +43,40 @@ public class HouseRoomAssigner
         roomInfos.AddRange(alreadyPlaced);
         SetGroupsAndNeighbours(roomInfos);
 
+        AbstractRoom kitchen = new AbstractRoom(RoomType.Kitchen, 6, .3f, false, null, new [] { RoomType.LivingRoom });
         
-        PlaceRoom(new AbstractRoom(RoomType.Kitchen, 6, .3f, false));
-        PlaceRoom(new AbstractRoom(RoomType.Bathroom, 2, .2f, false));
-        PlaceRoom(new AbstractRoom(RoomType.Bedroom, 4, .3f, false));
+        AbstractRoom bathroom = new AbstractRoom(RoomType.Bathroom, 2, .2f, false, 
+            new [] { RoomType.Kitchen, RoomType.Garage, RoomType.Machines, RoomType.Storage },
+            null);
         
-        List<RoomInfo> placedRooms = PlaceRoomsRecursively(_toPlace, roomInfos);
-        if (placedRooms == null || placedRooms.Count == 0)
+        AbstractRoom bedroom = new AbstractRoom(RoomType.Bedroom, 4, .3f, false);
+            
+        PlaceRoom(kitchen);
+        PlaceRoom(bathroom);
+        PlaceRoom(bedroom);
+        
+        _placedRooms = PlaceRoomsRecursively(_toPlace, roomInfos);
+        if (_placedRooms == null || _placedRooms.Count == 0)
             return null;
 
-        Console.Out.WriteLine("placedRooms.Count = {0}", placedRooms.Count);
-        PlaceRoom(new AbstractRoom(RoomType.Garage, 22, .3f, false));
+        Console.Out.WriteLine("placedRooms.Count = {0}", _placedRooms.Count);
+        TryToPlaceRoom(new AbstractRoom(RoomType.Garage, 20, .3f, true), roomInfos);
+        TryToPlaceRoom(new AbstractRoom(RoomType.Storage, 15, .3f, true, null , new [] { RoomType.Garage}), roomInfos);
+        TryToPlaceRoom(new AbstractRoom(RoomType.Machines, 3, 0f, false, 6, 0f, null, new [] { RoomType.Garage, RoomType.Storage }), roomInfos);
         
-        return placedRooms;
+        TryToPlaceRoom(new AbstractRoom(RoomType.Secret, 1, 0f, false, 1, 0f, null, null), roomInfos);
+        return _placedRooms;
+    }
+
+    private void TryToPlaceRoom(AbstractRoom room, List<RoomInfo> availableRooms) {
+        if (_placedRooms == null || _placedRooms.Count == 0)
+            return;
+        
+        PlaceRoom(room);
+        List<RoomInfo> rooms = PlaceRoomsRecursively(_toPlace, availableRooms);
+        if (rooms != null) {
+            _placedRooms = rooms;
+        }
     }
 
     private bool CanBePlaced(AbstractRoom abstractRoom, RoomInfo roomInfo) {
@@ -65,6 +88,27 @@ public class HouseRoomAssigner
         
         if (!roomInfo.IsOnEdge && abstractRoom.HasToBeOnEdge)
             return false;
+        
+        if (abstractRoom.AreaMax < roomInfo.Room.points.Count)
+            return false;
+        
+        bool canPlaceDoor = false;
+        if (abstractRoom.AvoidRoomTypes != null) {
+            foreach (var neighbour in roomInfo.Neighbours) {
+                if (abstractRoom.AvoidRoomTypes.Contains(neighbour.RoomType)) 
+                    continue;
+            
+                canPlaceDoor = true;
+                break;
+            }
+        } else {
+            canPlaceDoor = true;
+        }
+
+        if (!canPlaceDoor)
+            return false;
+        
+        
         
         return true;
     }
@@ -97,7 +141,9 @@ public class HouseRoomAssigner
                     RoomType = roomToPlace.RoomType,
                     Neighbours = availableRooms[i].Neighbours,
                     Group = availableRooms[i].Group,
-                    IsOnEdge = availableRooms[i].IsOnEdge
+                    IsOnEdge = availableRooms[i].IsOnEdge,
+                    IsAlreadyPlaced = true,
+                    AbstractRoom = roomToPlace
                 };
                 
                 availableRooms.RemoveAt(i);

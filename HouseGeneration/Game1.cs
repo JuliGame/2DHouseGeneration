@@ -137,11 +137,7 @@ public class Game1 : Game
         if (Keyboard.GetState().IsKeyDown(Keys.D)) {
             cameraX -= (int)(1 * speed);
         }
-
-
-        // TODO: Add your update logic here
         
-        // Detect if clicked
         
         MouseState mouseState = Mouse.GetState();
         if (mouseState.LeftButton == ButtonState.Pressed)
@@ -165,18 +161,23 @@ public class Game1 : Game
 
             if (isUp) {
                 map.Paint(Color.Red, tileX, tileY, Side.Top);
+                System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2 + 2));
             }
             else if (isDown) {
                 map.Paint(Color.Red, tileX, tileY, Side.Bottom);
+                System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2));
             }
             else if (isLeft) {
                 map.Paint(Color.Red, tileX, tileY, Side.Left);
+                System.Console.WriteLine("Clicked on wall " + (tileX * 2) + ";" + (tileY * 2 + 1));
             }
             else if (isRight) {
                 map.Paint(Color.Red, tileX, tileY, Side.Right);
+                System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 2) + ";" + (tileY * 2));
             }
             else {
                 map.Paint(Color.Aqua, tileX, tileY);
+                System.Console.WriteLine("Clicked on tile " + tileX + ";" + tileY);
             }
         }
 
@@ -209,7 +210,8 @@ public class Game1 : Game
                 int x = ix / 2;
                 int y = iy / 2;
                 
-                Color color = map.GetWall(ix, iy).Color;
+                Wall wall = map.GetWall(ix, iy);
+                Color color = wall.Color;
                 if (ix % 2 == 1) {
                     if (iy % 2 == 1) {
                         SpriteFont font = Content.Load<SpriteFont>("Arial");
@@ -228,13 +230,42 @@ public class Game1 : Game
                         _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
                         continue;
                     }
-                    
-                    _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, wallWidth), color);
+
+                    if (wall.isHalf) {
+                        if (wall.isTopOrLeft) {
+                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize / 2, (int)
+                                (wallWidth * wall.Thickness)), color); 
+                        }
+                        else {
+                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX + squareSize / 2, y * squareSize + cameraY, squareSize / 2, (int)
+                                (wallWidth * wall.Thickness)), color);
+                        }
+                    }
+                    else {
+                        _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, (int)
+                            (wallWidth * wall.Thickness)), color);
+                    }
+
                 } else {
                     if (iy == map.y*2)
                         continue;
                     
-                    _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, wallWidth, squareSize), color);
+                    if (wall.isHalf) {
+                        if (wall.isTopOrLeft) {
+                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, (int)
+                                (wallWidth * wall.Thickness), squareSize / 2), color); 
+                        }
+                        else {
+                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY + squareSize / 2, (int)
+                                (wallWidth * wall.Thickness), squareSize / 2), color);
+                        }
+                    }
+                    else {
+                        _spriteBatch.Draw(singlePixelTexture,
+                            new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, (int)
+                                (wallWidth * wall.Thickness), squareSize),
+                            color);
+                    }
                 }
             }
         }

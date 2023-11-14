@@ -5,9 +5,12 @@ public enum RoomType {
     Hallway,
     LivingRoom,
     Stairs,
+    Storage,
+    Machines,
     Kitchen,
     Bathroom,
     Bedroom,
     Garage,
-    Other
+    Other,
+    Secret
 }

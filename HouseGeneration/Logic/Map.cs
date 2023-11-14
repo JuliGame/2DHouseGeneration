@@ -1,3 +1,4 @@
+using System;
 using HouseGeneration.Logic.Generator;
 using HouseGeneration.Logic.Generator.@class;
 using Microsoft.Xna.Framework;
@@ -50,26 +51,15 @@ public class Map
     }
     
     public void Paint(Color color, int x, int y, Side side) {
-        int wallX = x * 2 + 1;
-        int wallY = y * 2 + 1;
-        switch (side) {
-            case Side.Top:
-                wallY--;
-                break;
-            case Side.Right:
-                wallX++;
-                break;
-            case Side.Bottom:
-                wallY++;
-                break;
-            case Side.Left:
-                wallX--;
-                break;
-        }
+        int wallX = x * 2 + 1 + side.GetX();
+        int wallY = y * 2 + 1 + side.GetY();
         walls[wallX, wallY].Color = color;
     }
-    public void PaintWall(Color color, int wallX, int wallY) {
+    public void PaintWall(Color color, int wallX, int wallY, bool half = false, bool topLeft = false, float thickness = 1) {
         walls[wallX, wallY].Color = color;
+        walls[wallX, wallY].isHalf = half;
+        walls[wallX, wallY].isTopOrLeft = topLeft;
+        walls[wallX, wallY].Thickness = thickness;
     }
     
     public Tile GetTile(int x, int y) {
@@ -78,5 +68,14 @@ public class Map
     
     public Wall GetWall(int x, int y) {
         return walls[x, y];
+    }
+
+    public void PrintWalls() {
+        for (int i = 0; i < x*2+1; i++) {
+            for (int j = 0; j < y*2+1; j++) {
+                Console.Write(walls[i, j].Color == Color.Transparent ? " " : "#");
+            }
+            Console.WriteLine();
+        }
     }
 }

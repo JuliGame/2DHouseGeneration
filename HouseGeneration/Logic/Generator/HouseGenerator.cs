@@ -425,7 +425,6 @@ public class HouseGenerator {
             
             foreach (var roomInfo in succedRooms) {
                 roomInfo.Room.Text = roomInfo.RoomType.ToString();
-                roomInfo.Room.Text += $" \n{roomInfo.Neighbours.Count}";
                 TryToPlaceRoom(roomInfo.Room, true);
             }
 
@@ -485,15 +484,13 @@ public class HouseGenerator {
                 Room room1 = wallInfo.Parent.Room;
                 Room room2 = wallInfo.Child?.Room;
                 
-                wallInfo.PaintWalls(_map);
-                if (room2 == null)
-                    continue;
-                
-                wallInfo.MakeDoorInMiddle(_map);
+                wallInfo.MakeWallsAndDoors(_map);
             }
             
             Console.Out.WriteLine("Generation completerd");
             UpdateMapPaint();
+
+            // _map.PrintWalls();
             return true;
         }
         
@@ -552,7 +549,7 @@ public class HouseGenerator {
                     if (room != null) {
                         if (_tileGrid[x, y] >= 2) {
                             if (new Point2D((x, y)).DistanceTo(new Point2D(((int, int)) room.GetCenter())) < 1) {
-                                _map.Paint(room.Color, x, y, room.Text + $" ({room.Id})");
+                                _map.Paint(room.Color, x, y, room.Text);
                             }
                             else {
                                 _map.Paint(room.Color, x, y);

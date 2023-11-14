@@ -8,4 +8,8 @@ public class Wall
     public Wall(Color color) {
         Color = color;
     }
+
+    public bool isHalf;
+    public bool isTopOrLeft;
+    public float Thickness = 1;
 }
