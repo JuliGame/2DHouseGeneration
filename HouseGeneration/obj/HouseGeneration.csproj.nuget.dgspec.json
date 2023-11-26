@@ -4,14 +4,14 @@
     "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj": {}
   },
   "projects": {
-    "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj": {
+    "/home/julian/MonoGame.ImGuiNet-main/Monogame.ImGuiNet.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj",
-        "projectName": "HouseGeneration",
-        "projectPath": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj",
+        "projectUniqueName": "/home/julian/MonoGame.ImGuiNet-main/Monogame.ImGuiNet.csproj",
+        "projectName": "MonoGame.ImGuiNet",
+        "projectPath": "/home/julian/MonoGame.ImGuiNet-main/Monogame.ImGuiNet.csproj",
         "packagesPath": "/home/julian/.nuget/packages/",
-        "outputPath": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/",
+        "outputPath": "/home/julian/MonoGame.ImGuiNet-main/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/julian/.nuget/NuGet/NuGet.Config"
@@ -38,6 +38,90 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "ImGui.NET": {
+              "target": "Package",
+              "version": "[1.89.7.1, )"
+            },
+            "MonoGame.Content.Builder.Task": {
+              "target": "Package",
+              "version": "[3.8.1.303, )"
+            },
+            "MonoGame.Framework.DesktopGL": {
+              "target": "Package",
+              "version": "[3.8.1.303, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.24, 6.0.24]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.24, 6.0.24]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/7.0.113/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj",
+        "projectName": "HouseGeneration",
+        "projectPath": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj",
+        "packagesPath": "/home/julian/.nuget/packages/",
+        "outputPath": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/julian/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "targetAlias": "net6.0",
+            "projectReferences": {
+              "/home/julian/MonoGame.ImGuiNet-main/Monogame.ImGuiNet.csproj": {
+                "projectPath": "/home/julian/MonoGame.ImGuiNet-main/Monogame.ImGuiNet.csproj"
+              },
+              "/home/julian/RiderProjects/HouseGeneration/Shared/Shared.csproj": {
+                "projectPath": "/home/julian/RiderProjects/HouseGeneration/Shared/Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "dependencies": {
             "Accord.Math": {
               "target": "Package",
               "version": "[3.8.2-alpha, )"
@@ -50,9 +134,9 @@
               "target": "Package",
               "version": "[3.8.1.303, )"
             },
-            "SharpNoise": {
+            "Newtonsoft.Json": {
               "target": "Package",
-              "version": "[0.12.1.1, )"
+              "version": "[13.0.3, )"
             }
           },
           "imports": [
@@ -85,6 +169,71 @@
               "privateAssets": "all"
             }
           },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/7.0.113/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/julian/RiderProjects/HouseGeneration/Shared/Shared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/julian/RiderProjects/HouseGeneration/Shared/Shared.csproj",
+        "projectName": "Shared",
+        "projectPath": "/home/julian/RiderProjects/HouseGeneration/Shared/Shared.csproj",
+        "packagesPath": "/home/julian/.nuget/packages/",
+        "outputPath": "/home/julian/RiderProjects/HouseGeneration/Shared/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/julian/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "targetAlias": "netstandard2.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "targetAlias": "netstandard2.0",
+          "dependencies": {
+            "MonoGame.Framework.DesktopGL": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.8.1.303, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
           "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/7.0.113/RuntimeIdentifierGraph.json"
         }
       }

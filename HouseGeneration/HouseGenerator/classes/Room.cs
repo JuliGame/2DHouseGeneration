@@ -9,11 +9,20 @@ public class Room {
     public List<(int, int)> points = new List<(int, int)>();
 
     public int Width {
-        get { return points.Max(p => p.Item1) - points.Min(p => p.Item1) + 1; }
+        get {
+            if (points.Count == 0)
+                return 0;
+            
+            return points.Max(p => p.Item1) - points.Min(p => p.Item1) + 1;
+        }
     }
 
     public int Height {
-        get { return points.Max(p => p.Item2) - points.Min(p => p.Item2) + 1; }
+        get {
+            if (points.Count == 0)
+                return 0;
+            return points.Max(p => p.Item2) - points.Min(p => p.Item2) + 1;
+        }
     }
 
     public bool MustBeAtEdge { get; set; }

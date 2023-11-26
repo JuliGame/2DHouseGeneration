@@ -168,7 +168,6 @@ public class WallInfo {
             else {
                 HallwayPrefereedPosition = Child.PreferredDoorPosition;
             }
-            System.Console.WriteLine("HallwayPrefereedPosition = {0}", HallwayPrefereedPosition);
             
             Point2D point2D = new Point2D((HallwayPrefereedPosition.Item1 * 2 + 1, HallwayPrefereedPosition.Item2 * 2 + 1));
             foreach (var valueTuple in Points) {

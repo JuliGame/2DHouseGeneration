@@ -27,4 +27,14 @@
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.dll
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.Math.Core.dll
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Accord.Math.dll
-/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/SharpNoise.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/ImGui.NET.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/runtimes/linux-x64/native/libcimgui.so
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/runtimes/osx/native/libcimgui.dylib
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/runtimes/win-arm64/native/cimgui.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/runtimes/win-x64/native/cimgui.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/runtimes/win-x86/native/cimgui.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Monogame.ImGuiNet.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Monogame.ImGuiNet.pdb
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Newtonsoft.Json.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Shared.dll
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Shared.pdb

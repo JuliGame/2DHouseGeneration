@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <!-- Editar esto al path donde se va a guardar el dll -->
+        <!-- En este caso en los assets de unity -->
+        <IntermediateOutputPath>/home/julian/ZEscape/Assets/Libs</IntermediateOutputPath>
+        <RootNamespace>Shared</RootNamespace>
+        <LangVersion>7.3</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303">
+            <PrivateAssets>All</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="ItemTypes\Weapons\FireArms\ShotGuns\" />
+    </ItemGroup>
+</Project>

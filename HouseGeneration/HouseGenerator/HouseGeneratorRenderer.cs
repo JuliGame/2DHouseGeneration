@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using HouseGeneration.Logic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -7,12 +6,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace HouseGeneration;
 
-public class Game1 : Game
+public class HouseGeneratorRenderer : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
-    public Game1()
+    public HouseGeneratorRenderer()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
