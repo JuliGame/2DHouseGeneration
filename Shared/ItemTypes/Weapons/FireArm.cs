@@ -11,5 +11,10 @@ namespace Shared.ItemTypes.Weapons
         public float Precision = 1;
     
         public float Range = 10;
+        
+        public FireArm() {
+            MaxStack = 1;
+            HoldAnimation = Properties.HoldAnimation.handgun;
+        }
     }
 }

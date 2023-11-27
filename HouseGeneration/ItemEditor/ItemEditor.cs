@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Xna.Framework.Graphics;
 using Shared;
+using Shared.Properties;
 
 
 namespace HouseGeneration.ItemEditor;
@@ -51,8 +53,35 @@ public class ItemEditor {
                         ImGui.Checkbox(fieldInfo.Name, ref value);
                         fieldInfo.SetValue(_item, value);
                     }
+                    if (fieldInfo.FieldType.IsEnum) {
+                        int value = (int) fieldInfo.GetValue(_item);
+                        ImGui.Combo(fieldInfo.Name, ref value, Enum.GetNames(fieldInfo.FieldType), Enum.GetNames(fieldInfo.FieldType).Length);
+                        fieldInfo.SetValue(_item, value);
+                    }
+                    
+                    if (fieldInfo.FieldType == typeof(Image)){
+                        Image image = (Image) fieldInfo.GetValue(_item);
+                        String value;
+                        if (image != null) {
+                            value = image.Path;
+                        } else {
+                            value = _ItemExtraData.imgName;
+                        }
+                        
+                        ImGui.InputText(fieldInfo.Name, ref value, 255);
+                        if (image != null) {
+                            Texture2D texture2D = ItemList.LoadTexture(image.Path);
+                            if (texture2D != null) {
+                                IntPtr id = ItemList.LoadTexture2D(texture2D);
+                                ImGui.Image(id, new System.Numerics.Vector2(100, 100));
+                            }
+                            image.Path = value;
+                        } else {
+                            fieldInfo.SetValue(_item, new Image() {Path = value});
+                        }
+                        
+                    }
                 }
-                Console.WriteLine();
             }
         }
         
@@ -75,14 +104,16 @@ public class ItemEditor {
         if (ImGui.Button("Auto Fix")) {
             if (_ItemExtraData.imgName != _ItemExtraData.item.ItemPath) {
                 _ItemExtraData.item.ItemPath = _ItemExtraData.imgName;
-                Console.Out.WriteLine("Auto fixed path");
             }
         }
         
         ImGui.SameLine();
-        ImGui.Button("Save");
+        if (ImGui.Button("Save"))
+            itemEditorMain.Save(_ItemExtraData);
+        
         ImGui.SameLine(ImGui.GetWindowWidth() - 90);
-
+            
+            
         if (ImGui.Button("Save exit"))
             itemEditorMain.RemoveItemFromEditor(_ItemExtraData);
         

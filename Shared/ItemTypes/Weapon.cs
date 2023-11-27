@@ -7,6 +7,7 @@ namespace Shared.ItemTypes
 
         public Weapon() {
             MaxStack = 1;
+            HoldAnimation = Properties.HoldAnimation.knife;
         }
     }
 }

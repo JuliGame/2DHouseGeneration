@@ -6,6 +6,7 @@ using System.Timers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Shared;
+using Shared.Properties;
 
 namespace HouseGeneration.ItemEditor;
 
@@ -13,7 +14,7 @@ using ImGuiNET;
 
 public class ItemList
 {
-    private String path = "/home/julian/ZEscape/Assets/Resources/Items";
+    private static String path = "/home/julian/ZEscape/Assets/Resources/Items";
     
     private ItemEditorMain ItemEditorMain;
 
@@ -64,7 +65,6 @@ public class ItemList
     
     private static Timer debounceTimer = new Timer(50) { AutoReset = false };
     private void OnChanged(object source, FileSystemEventArgs e) {
-        Console.Out.WriteLine("File: " + e.FullPath + " " + e.ChangeType);
         
         debounceTimer.Stop();
         debounceTimer.Start();
@@ -100,7 +100,7 @@ public class ItemList
         ProcessDirectory(path, images, dotItems);
         
         foreach (var itemFileName in images) {
-            Texture2D texture2D = LoadTexture(path + "/" + itemFileName + ".png");
+            Texture2D texture2D = LoadTexture(itemFileName);
             IntPtr id =  ItemEditorMain.GuiRenderer.BindTexture(texture2D);
             
             ItemExtraData itemExtraData = new ItemExtraData();
@@ -111,7 +111,6 @@ public class ItemList
             
             if (itemFileName.Contains("/")) {
                 itemExtraData.categories = fullPath.Remove(0, path.Length + 1).Remove(itemFileName.LastIndexOf("/"), itemFileName.Length - itemFileName.LastIndexOf("/"));
-                Console.Out.WriteLine("itemFileName = {0}", itemFileName);
             } else {
                 itemExtraData.categories = "";
             }
@@ -121,8 +120,34 @@ public class ItemList
                 itemExtraData.item = GetItem(itemExtraData);
             }
             
-            this._images.Add(itemExtraData);
+            _images.Add(itemExtraData);
             ImagesDict.Add(itemFileName, id);
+        }
+        
+        // iterate through all the fields of the item to see if any is of type Image
+        List<string> imagesUsedByItems = new List<string>();
+        foreach (var itemExtraData in _images) {
+            if (itemExtraData.item == null)
+                continue;
+            
+            foreach (var fieldInfo in itemExtraData.item.GetType().GetFields()) {
+                if (fieldInfo.FieldType == typeof(Image)) {
+                    Image image = (Image) fieldInfo.GetValue(itemExtraData.item);
+                    if (image != null) {
+                        if (image.Path != itemExtraData.item.ItemPath)
+                            imagesUsedByItems.Add(image.Path);
+                    }
+                }
+            }
+        }
+        
+        foreach (var itemFileName in imagesUsedByItems) {
+            foreach (var itemExtraData in _images.ToList()) {
+                if (itemExtraData.imgName != itemFileName) {
+                    continue;
+                }
+                _images.Remove(itemExtraData);
+            }
         }
     }
 
@@ -138,7 +163,6 @@ public class ItemList
             var assembly = System.Reflection.Assembly.Load("Shared");
             String namespacePrefix = "Shared.ItemTypes";
             
-            // print all assembly classes
             // foreach (var type in assembly.GetTypes()) {
             //     Console.WriteLine(type.FullName);
             // }
@@ -278,6 +302,16 @@ public class ItemList
         }
         foreach (var field in imgData.item.GetType().GetFields()) {
             if (field.GetValue(imgData.item) == null) {
+                var attrs = field.GetCustomAttributes(true);
+                
+                bool hasNullable = false;
+                foreach (var attr in attrs) {
+                    if (attr is NullableAttribute)
+                        hasNullable = true;
+                }
+                if (hasNullable)
+                    continue;
+                
                 errors.Add("[Error] missing " + field.Name);
                 continue;
             }
@@ -294,11 +328,31 @@ public class ItemList
         return errors;
     }
 
-    Texture2D LoadTexture(string path)
-    {
-        using (FileStream fileStream = new FileStream(path, FileMode.Open))
-        {
-            return Texture2D.FromStream(ItemEditorMain.GraphicsDevice, fileStream);
+    private static Dictionary<string, Texture2D> hashedTextures2D = new Dictionary<string, Texture2D>();
+    public static Texture2D LoadTexture(string imgPath) {
+        imgPath = path + "/" + imgPath + ".png";
+        try {
+            if (hashedTextures2D.ContainsKey(imgPath))
+                return hashedTextures2D[imgPath];
+            
+            using (FileStream fileStream = new FileStream(imgPath, FileMode.Open)) {
+                Texture2D t2 = Texture2D.FromStream(ItemEditorMain.Graphics.GraphicsDevice, fileStream);
+                hashedTextures2D.Add(imgPath, t2);
+                return t2;
+            }
         }
+        catch (Exception e) {
+            return null;
+        }
+    }
+    
+    private static Dictionary<Texture2D, IntPtr> hashedTextures = new Dictionary<Texture2D, IntPtr>();
+    public static IntPtr LoadTexture2D(Texture2D texture2D) {
+        if (hashedTextures.ContainsKey(texture2D))
+            return hashedTextures[texture2D];
+        
+        IntPtr id = ItemEditorMain.GuiRenderer.BindTexture(texture2D);
+        hashedTextures.Add(texture2D, id);
+        return id;
     }
 }

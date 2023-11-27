@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Shared.Properties;
 
 namespace Shared
 {
@@ -11,6 +12,11 @@ namespace Shared
         public int MaxStack = 16;
         public float Weight = 1f;
         public float MovingSpeed = 1f;
+        
+        public HoldAnimation HoldAnimation = HoldAnimation.flashlight;
+        
+        [Nullable]
+        public Image EquipedImage;
 
         public void SaveAsJson(String path) {
             String json = Newtonsoft.Json.JsonConvert.SerializeObject(this);

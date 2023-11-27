@@ -20,5 +20,6 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="ItemTypes\Weapons\FireArms\ShotGuns\" />
+      <Folder Include="ItemTypes\Weapons\MeleGuns\" />
     </ItemGroup>
 </Project>

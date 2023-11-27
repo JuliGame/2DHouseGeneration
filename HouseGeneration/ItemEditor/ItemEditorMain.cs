@@ -10,13 +10,13 @@ namespace HouseGeneration.ItemEditor;
 
 public class ItemEditorMain : Game
 {
-    private GraphicsDeviceManager graphics;
+    public static GraphicsDeviceManager Graphics;
     private SpriteBatch spriteBatch;
-    public ImGuiRenderer GuiRenderer;
+    public static ImGuiRenderer GuiRenderer;
     public List<ItemEditor>  ItemEditors = new List<ItemEditor>();
 
     public ItemEditorMain() {
-        graphics = new GraphicsDeviceManager(this);
+        Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
@@ -84,6 +84,10 @@ public class ItemEditorMain : Game
         CurrentItems.Remove(item.item);
         
         if (save)
-            item.item.SaveAsJson(item.fullPath +  ".txt");
+            Save(item);
+    }
+
+    public void Save(ItemList.ItemExtraData item) {
+        item.item.SaveAsJson(item.fullPath +  ".txt");
     }
 }
