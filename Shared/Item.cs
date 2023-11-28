@@ -4,6 +4,7 @@ using Shared.Properties;
 
 namespace Shared
 {
+    [System.Serializable]
     public class Item {
         public String ItemPath = "";
         public String Description = "";
