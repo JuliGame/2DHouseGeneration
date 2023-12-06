@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using HouseGeneration.Logic.Generator;
 
-namespace HouseGeneration.Logic;
+
 
 public class PolygonGenerator
 {

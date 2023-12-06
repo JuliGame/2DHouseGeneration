@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
-using System.Threading;
-using HouseGeneration.Logic.Generator.@class;
-using Microsoft.Xna.Framework;
 
-namespace HouseGeneration.Logic.Generator;
+using Shared.ProceduralGeneration;
+using Shared.ProceduralGeneration.Util;
 
 public class HouseGenerator {
 
@@ -228,7 +227,7 @@ public class HouseGenerator {
                 
                 float noSquareness = Random.Next(30) / 100f;
                 noSquareness *= (Random.Next(20) - 10f)/ 100f; 
-                _livingRoom = new Room(roomM2, noSquareness, false, Color.SaddleBrown);
+                _livingRoom = new Room(roomM2, noSquareness, false, new Texture("Ground", Color.SaddleBrown));
                 _livingRoom.Text = "living";
                 _livingRoom.Id = 3;  
                 
@@ -251,7 +250,7 @@ public class HouseGenerator {
                     return false;
                 }
                 
-                mainHallway.Color = Color.Brown;
+                mainHallway.Texture = new Texture("Ground",Color.Brown);
                 mainHallway.Id = 3;
                 TryToPlaceRoom(mainHallway, true);
                 hallways.Add(mainHallway);
@@ -266,7 +265,7 @@ public class HouseGenerator {
             Room hall = null;
             if (hallRaycast.Distance > 1) {
                 hall = hallRaycast.GetAsRoom(false, false);
-                hall.Color = Color.Brown;
+                hall.Texture = new Texture("Ground",Color.Brown);
                 hall.Text = "hall";
                 hall.Id = 3;
                 TryToPlaceRoom(hall, true);
@@ -333,7 +332,7 @@ public class HouseGenerator {
                     // middles.Shuffle();
                     RayCastResult furthest = null;
                     foreach (var middle in middles) {
-                        Room point = new Room(1, 1, middle.Item1, middle.Item2, false, Color.Red);
+                        Room point = new Room(1, 1, middle.Item1, middle.Item2, false, new Texture("Ground",Color.Red));
                         point.Id = 1;
                         TryToPlaceRoom(point);
                         
@@ -355,7 +354,7 @@ public class HouseGenerator {
                         if (dividerHallway.points.Count == 0)
                             continue;
                     
-                        dividerHallway.Color = Color.Brown;
+                        dividerHallway.Texture = new Texture("Ground",Color.Brown);
                         dividerHallway.Id = 3;
                         dividerHallway.Text = "77";
                         TryToPlaceRoom(dividerHallway, true);
@@ -552,22 +551,22 @@ public class HouseGenerator {
                     if (room != null) {
                         if (_tileGrid[x, y] >= 2) {
                             if (new Point2D((x, y)).DistanceTo(new Point2D(((int, int)) room.GetCenter())) < 1) {
-                                _map.Paint(room.Color, x, y, room.Text);
+                                _map.Paint(room.Texture, x, y, room.Text);
                             }
                             else {
-                                _map.Paint(room.Color, x, y);
+                                _map.Paint(room.Texture, x, y);
                             }
                         }
                         else {
-                            _map.Paint(Color.Green, x, y);
+                            _map.Paint(new Texture("Grass"), x, y);
                         }
                     }
                     else {
                         if (_tileGrid[x, y] == -1 || _tileGrid[x, y] == 0) {
-                            _map.Paint(Color.Green, x, y);
+                            _map.Paint(new Texture("Grass"), x, y);
                         }
                         else {
-                            _map.Paint(Color.Black, x, y);
+                            _map.Paint(new Texture("Empty"), x, y);
                         }
                     }
                 }
@@ -670,7 +669,7 @@ public class HouseGenerator {
                 int wallPoints = 0;
                 (x, y) = new Point2D(point).Extend(facingSide).ToTuple();
             
-                Room hallway = new Room(1, 1, x, y, false, Color.Black);
+                Room hallway = new Room(1, 1, x, y, false, new Texture("Ground", Color.Black));
                 
                 while (CanPlaceRoom(hallway)) {
                     hallway.Extend(facingSide);

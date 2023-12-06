@@ -38,3 +38,4 @@
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Newtonsoft.Json.dll
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Shared.dll
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/Shared.pdb
+/home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/Debug/net6.0/HouseGeneration.sourcelink.json

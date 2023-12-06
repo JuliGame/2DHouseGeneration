@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using Shared.Properties;
 
 namespace Shared
@@ -7,6 +8,7 @@ namespace Shared
     [System.Serializable]
     public class Item {
         public String ItemPath = "";
+        [Nullable]
         public String Description = "";
         public float PickupRadius = 1f;
 
@@ -31,6 +33,20 @@ namespace Shared
 
         public static Item LoadFromJsonTXT(String text, Type type) {
             return (Item)Newtonsoft.Json.JsonConvert.DeserializeObject(text, type);
+        }
+        
+        
+        public Item Clone() {
+            MemoryStream ms = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+
+            bf.Serialize(ms, this);
+
+            ms.Position = 0;
+            object obj = bf.Deserialize(ms);
+            ms.Close();
+
+            return obj as Item;
         }
     }
 }

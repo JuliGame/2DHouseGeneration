@@ -27,16 +27,19 @@ public class ItemList
     }
     
     List<ItemExtraData> _images = new List<ItemExtraData>();
-    IntPtr solidGreen;
-    IntPtr solidYellow;
-    IntPtr solidBlue;
-    IntPtr solidRed;
+    public IntPtr solidGreen;
+    public IntPtr solidYellow;
+    public IntPtr solidBlue;
+    public IntPtr solidRed;
+    public IntPtr solidBlack;
+    public IntPtr solidWhite;
     FileSystemWatcher watcher = new FileSystemWatcher();
     
     public static Dictionary<string, IntPtr> ImagesDict = new Dictionary<string, IntPtr>();
+    public static ItemList Instance;
     public ItemList(ItemEditorMain itemEditorMain) {
         this.ItemEditorMain = itemEditorMain;
-        
+        Instance = this;
         Texture2D solidGreen = new Texture2D(ItemEditorMain.GraphicsDevice, 1, 1);
         solidGreen.SetData(new[] { Color.Green });
         this.solidGreen = ItemEditorMain.GuiRenderer.BindTexture(solidGreen);
@@ -52,6 +55,14 @@ public class ItemList
         Texture2D solidRed = new Texture2D(ItemEditorMain.GraphicsDevice, 1, 1);
         solidRed.SetData(new[] { Color.Red });
         this.solidRed = ItemEditorMain.GuiRenderer.BindTexture(solidRed);
+        
+        Texture2D solidBlack = new Texture2D(ItemEditorMain.GraphicsDevice, 1, 1);
+        solidBlack.SetData(new[] { Color.Black });
+        this.solidBlack = ItemEditorMain.GuiRenderer.BindTexture(solidBlack);
+        
+        Texture2D solidWhite = new Texture2D(ItemEditorMain.GraphicsDevice, 1, 1);
+        solidWhite.SetData(new[] { Color.White });
+        this.solidWhite = ItemEditorMain.GuiRenderer.BindTexture(solidWhite);
         
         watcher.Path = path;
         watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
@@ -96,6 +107,9 @@ public class ItemList
         ImagesDict.Clear();
         List<String> images = new List<string>();
         List<String> dotItems = new List<string>();
+        
+        if (!Directory.Exists(path))
+            return;
         
         ProcessDirectory(path, images, dotItems);
         
@@ -211,6 +225,8 @@ public class ItemList
         if (ImGui.Button("Reload"))
             Init();
         
+        ImGui.InputText("Path: ", ref path, 255);
+        
         Dictionary<String, List<ItemExtraData>> categories = new Dictionary<String, List<ItemExtraData>>();
         foreach (var imgData in _images) {
             if (!categories.ContainsKey(imgData.categories)) {
@@ -273,7 +289,7 @@ public class ItemList
                     
                     ImGui.EndTooltip();
                 }
-
+                
                 if (ImGui.IsItemClicked()) {
                     if (imgData.item != null && ItemEditorMain.CurrentItems.ContainsKey(imgData.item)) {
                         ItemEditorMain.RemoveItemFromEditor(imgData);
@@ -285,6 +301,14 @@ public class ItemList
                         }
                         ItemEditorMain.AddItemToEditor(imgData);
                     }
+                }
+                
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right)){
+                    ImGui.SetClipboardText(imgData.imgName);
+                }
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ImGui.GetIO().KeyCtrl){
+                    File.Delete(imgData.fullPath + ".txt");
+                    Init();
                 }
                 i++;
             }
@@ -301,22 +325,25 @@ public class ItemList
             return errors;
         }
         foreach (var field in imgData.item.GetType().GetFields()) {
+            bool missing = false;
             if (field.GetValue(imgData.item) == null) {
-                var attrs = field.GetCustomAttributes(true);
-                
-                bool hasNullable = false;
-                foreach (var attr in attrs) {
-                    if (attr is NullableAttribute)
-                        hasNullable = true;
-                }
-                if (hasNullable)
-                    continue;
-                
-                errors.Add("[Error] missing " + field.Name);
+                missing = true;
                 continue;
             }
             // if field is a string, check that is not empty
             if (field.FieldType == typeof(String) && (String)field.GetValue(imgData.item) == "")
+                missing = true;
+            
+            var attrs = field.GetCustomAttributes(true);
+            bool hasNullable = false;
+            foreach (var attr in attrs) {
+                if (attr is NullableAttribute)
+                    hasNullable = true;
+            }
+            if (hasNullable)
+                continue;
+            
+            if (missing)
                 errors.Add("[Error] missing " + field.Name);
         }
 

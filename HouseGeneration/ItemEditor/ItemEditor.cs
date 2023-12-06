@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using System.Reflection;
 using Microsoft.Xna.Framework.Graphics;
 using Shared;
@@ -36,25 +37,48 @@ public class ItemEditor {
                     if (fieldInfo.FieldType == typeof(string)) {
                         String value = (String) fieldInfo.GetValue(_item);
                         ImGui.InputText(fieldInfo.Name, ref value, 255);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                            value = ImGui.GetClipboardText();
+                        }
                         fieldInfo.SetValue(_item, value);
                     }
                     if (fieldInfo.FieldType == typeof(int)) {
                         int value = (int) fieldInfo.GetValue(_item);
                         ImGui.InputInt(fieldInfo.Name, ref value);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                            if (int.TryParse(ImGui.GetClipboardText(), out int result)) {
+                                value = result;
+                            }
+                        }
                         fieldInfo.SetValue(_item, value);
                     }
                     if (fieldInfo.FieldType == typeof(float)) {
                         float value = (float) fieldInfo.GetValue(_item);
                         ImGui.InputFloat(fieldInfo.Name, ref value);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                            if (float.TryParse(ImGui.GetClipboardText(), out float result)) {
+                                value = result;
+                            }
+                        }
                         fieldInfo.SetValue(_item, value);
                     }
                     if (fieldInfo.FieldType == typeof(bool)) {
                         bool value = (bool) fieldInfo.GetValue(_item);
                         ImGui.Checkbox(fieldInfo.Name, ref value);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                            if (bool.TryParse(ImGui.GetClipboardText(), out bool result)) {
+                                value = result;
+                            }
+                        }
                         fieldInfo.SetValue(_item, value);
                     }
                     if (fieldInfo.FieldType.IsEnum) {
                         int value = (int) fieldInfo.GetValue(_item);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                            if (int.TryParse(ImGui.GetClipboardText(), out int result)) {
+                                value = result;
+                            }
+                        }
                         ImGui.Combo(fieldInfo.Name, ref value, Enum.GetNames(fieldInfo.FieldType), Enum.GetNames(fieldInfo.FieldType).Length);
                         fieldInfo.SetValue(_item, value);
                     }
@@ -69,11 +93,19 @@ public class ItemEditor {
                         }
                         
                         ImGui.InputText(fieldInfo.Name, ref value, 255);
+                        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                            value = ImGui.GetClipboardText();
+                        }
+                        
                         if (image != null) {
                             Texture2D texture2D = ItemList.LoadTexture(image.Path);
                             if (texture2D != null) {
                                 IntPtr id = ItemList.LoadTexture2D(texture2D);
                                 ImGui.Image(id, new System.Numerics.Vector2(100, 100));
+                                
+                                if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) {
+                                    value = ImGui.GetClipboardText();
+                                }
                             }
                             image.Path = value;
                         } else {
@@ -81,6 +113,22 @@ public class ItemEditor {
                         }
                         
                     }
+
+
+                    if (ImGui.IsItemHovered()) {
+                        ImGui.BeginTooltip();
+                        ImGui.TextColored(new System.Numerics.Vector4(0, 1, 1, 1), "Type: " + fieldInfo.FieldType.ToString().Split('.').Last());
+                        try {
+                            ImGui.TextColored(new System.Numerics.Vector4(0, 1, 1, 1), "Rigth click to paste: " + ImGui.GetClipboardText());
+                        }
+                        catch (Exception) {
+                            // ignored
+                        }
+
+                        ImGui.EndTooltip();
+                    }
+
+                    
                 }
             }
         }
@@ -90,8 +138,18 @@ public class ItemEditor {
             
         }
 
-        if (ItemList.ImagesDict.ContainsKey(_ItemExtraData.imgName)) {
+        if (ItemList.ImagesDict.ContainsKey(_ItemExtraData.imgName))
+        {
+            
             IntPtr id = ItemList.ImagesDict[_ItemExtraData.imgName];
+            ImGui.Image(ItemList.Instance.solidBlack, new System.Numerics.Vector2(100, 100));
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 110);
+            ImGui.Image(id, new System.Numerics.Vector2(100, 100));
+            ImGui.SameLine();
+            ImGui.Image(ItemList.Instance.solidWhite, new System.Numerics.Vector2(100, 100));
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 110);
             ImGui.Image(id, new System.Numerics.Vector2(100, 100));
         }
 

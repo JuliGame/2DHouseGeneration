@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HouseGeneration.Logic.Generator.@class;
+using Shared.ProceduralGeneration.Util;
 
-namespace HouseGeneration.Logic.Generator;
 
 public class HouseRoomAssigner
 {

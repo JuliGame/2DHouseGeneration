@@ -1,10 +1,11 @@
 ﻿using System.Threading;
-using HouseGeneration.Logic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Shared.ProceduralGeneration;
+using Shared.ProceduralGeneration.Util;
 
-namespace HouseGeneration;
+namespace HouseGeneration.HouseGenerator;
 
 public class HouseGeneratorRenderer : Game
 {
@@ -41,7 +42,7 @@ public class HouseGeneratorRenderer : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         IsquareSize = 30;
-        IwallWidth = 2;
+        IwallWidth = 8;
         IwallMargin = IwallWidth + 1;
         
         squareSize = IsquareSize;
@@ -50,8 +51,9 @@ public class HouseGeneratorRenderer : Game
         
         
         // map = new Map(50, 40);
-        
-        map = new Map(25, 18);
+        map = new Map(20, 20);
+
+        // map = new Map(25, 18);
         // map = new Map(17, 12);
         // map = new Map(12, 8);
         Thread mapGeneratorThread = new Thread(() => {
@@ -159,30 +161,34 @@ public class HouseGeneratorRenderer : Game
             bool isRight = mousePosition.X % squareSize > squareSize - wallMargin;
 
             if (isUp) {
-                map.Paint(Color.Red, tileX, tileY, Side.Top);
+                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Top);
                 System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2 + 2));
             }
             else if (isDown) {
-                map.Paint(Color.Red, tileX, tileY, Side.Bottom);
+                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Bottom);
                 System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2));
             }
             else if (isLeft) {
-                map.Paint(Color.Red, tileX, tileY, Side.Left);
+                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Left);
                 System.Console.WriteLine("Clicked on wall " + (tileX * 2) + ";" + (tileY * 2 + 1));
             }
             else if (isRight) {
-                map.Paint(Color.Red, tileX, tileY, Side.Right);
+                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Bottom);
                 System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 2) + ";" + (tileY * 2));
             }
             else {
-                map.Paint(Color.Aqua, tileX, tileY);
+                // map.Paint(System.Drawing.Color.Aqua, tileX, tileY);
                 System.Console.WriteLine("Clicked on tile " + tileX + ";" + tileY);
             }
         }
 
         base.Update(gameTime);
     }
-    
+
+    public Color fromSysColor(System.Drawing.Color color) {
+        return new Color(color.R, color.G, color.B, color.A);
+    }
+
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -198,7 +204,7 @@ public class HouseGeneratorRenderer : Game
                 _spriteBatch.Draw(
                     singlePixelTexture,
                     new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, squareSize),
-                    map.GetTile(x, y).Color);
+                    fromSysColor(map.GetTile(x, y).Texture.Color));
             }
         }
 
@@ -210,7 +216,7 @@ public class HouseGeneratorRenderer : Game
                 int y = iy / 2;
                 
                 Wall wall = map.GetWall(ix, iy);
-                Color color = wall.Color;
+                Color color =  fromSysColor(wall.Texture.Color);
                 if (ix % 2 == 1) {
                     if (iy % 2 == 1) {
                         SpriteFont font = Content.Load<SpriteFont>("Arial");
@@ -224,7 +230,7 @@ public class HouseGeneratorRenderer : Game
                         float scale = 0.7f; // Adjust this value to something that suits your needs.
                         textSize *= scale;
                         Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f + cameraX,
-                                                       y * squareSize + squareSize / 2f - textSize.Y / 2f + cameraY);
+                            y * squareSize + squareSize / 2f - textSize.Y / 2f + cameraY);
                         
                         _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
                         continue;
