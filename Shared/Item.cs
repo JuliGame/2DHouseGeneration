@@ -18,6 +18,8 @@ namespace Shared
         
         public HoldAnimation HoldAnimation = HoldAnimation.flashlight;
         
+        public Audio ItemEquip;
+        
         [Nullable]
         public Image EquipedImage;
 

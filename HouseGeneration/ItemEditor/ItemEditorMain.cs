@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -14,7 +18,6 @@ public class ItemEditorMain : Game
     private SpriteBatch spriteBatch;
     public static ImGuiRenderer GuiRenderer;
     public List<ItemEditor>  ItemEditors = new List<ItemEditor>();
-
     public ItemEditorMain() {
         Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
@@ -89,5 +92,22 @@ public class ItemEditorMain : Game
 
     public void Save(ItemList.ItemExtraData item) {
         item.item.SaveAsJson(item.fullPath +  ".txt");
+    }
+    
+    public void PlaySound(string filePath) {
+        // Crear un proceso para ejecutar el comando mpg123
+        Thread t = new Thread(() =>
+        {
+            Process process = new Process();
+            process.StartInfo.FileName = "mpg123";
+            process.StartInfo.Arguments = filePath;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+
+            // Iniciar el proceso y esperar a que termine
+            process.Start();
+            process.WaitForExit();
+        });
+        t.Start();
     }
 }

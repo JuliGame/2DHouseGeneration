@@ -29,7 +29,9 @@
       <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="ItemEditor\classes\" />
+      <Reference Include="NAudio.WinForms">
+        <HintPath>..\..\..\.nuget\packages\naudio.winforms\2.2.1\lib\net472\NAudio.WinForms.dll</HintPath>
+      </Reference>
     </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>

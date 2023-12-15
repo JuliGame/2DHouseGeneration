@@ -1,5 +1,7 @@
 
 
+using Shared.Properties;
+
 namespace Shared.ItemTypes.Weapons
 {
     [System.Serializable]
@@ -17,6 +19,8 @@ namespace Shared.ItemTypes.Weapons
         public float Precision = 1;
     
         public float Range = 10;
+        
+        public Audio FireSound;
         
         public FireArm() {
             MaxStack = 1;

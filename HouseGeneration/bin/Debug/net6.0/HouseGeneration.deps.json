@@ -13,7 +13,8 @@
           "MonoGame.Framework.DesktopGL": "3.8.1.303",
           "MonoGame.ImGuiNet": "1.0.0",
           "Newtonsoft.Json": "13.0.3",
-          "Shared": "1.0.0"
+          "Shared": "1.0.0",
+          "NAudio.WinForms": "2.2.1.0"
         },
         "runtime": {
           "HouseGeneration.dll": {}
@@ -161,6 +162,14 @@
         "runtime": {
           "Shared.dll": {}
         }
+      },
+      "NAudio.WinForms/2.2.1.0": {
+        "runtime": {
+          "NAudio.WinForms.dll": {
+            "assemblyVersion": "2.2.1.0",
+            "fileVersion": "2.2.1.0"
+          }
+        }
       }
     }
   },
@@ -240,6 +249,11 @@
     },
     "Shared/1.0.0": {
       "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NAudio.WinForms/2.2.1.0": {
+      "type": "reference",
       "serviceable": false,
       "sha512": ""
     }

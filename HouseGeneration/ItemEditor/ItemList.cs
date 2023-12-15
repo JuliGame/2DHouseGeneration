@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Timers;
+using HouseGeneration.ItemEditor.classes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Shared;
@@ -14,7 +15,7 @@ using ImGuiNET;
 
 public class ItemList
 {
-    private static String path = "/home/julian/ZEscape/Assets/Resources/Items";
+    public static String path = "/home/julian/ZEscape/Assets/Resources/Items";
     
     private ItemEditorMain ItemEditorMain;
 
@@ -304,7 +305,10 @@ public class ItemList
                 }
                 
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Right)){
-                    ImGui.SetClipboardText(imgData.imgName);
+                    if (imgData.item != null)
+                        ClipboardHelper.HandleRightClick(null, imgData.item);
+                    else
+                        ClipboardHelper.HandleRightClick(null, new Image() {Path = imgData.imgName});
                 }
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && ImGui.GetIO().KeyCtrl){
                     File.Delete(imgData.fullPath + ".txt");

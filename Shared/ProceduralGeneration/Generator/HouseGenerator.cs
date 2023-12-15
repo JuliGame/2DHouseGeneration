@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-
+using System.Threading;
 using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
 
@@ -212,6 +212,8 @@ public class HouseGenerator {
             // Paso 1: Crear Living room
             // se inicia la generacion con un living room
             // lo primero, el living mide un "size"% del total de la casa
+            UpdateMapPaint();
+            
             float size = 0.2f;
             int maxLivingRoomSize = 8*8;
             _livingRoom = null;
@@ -234,11 +236,28 @@ public class HouseGenerator {
                 size -= 0.01f;
             }
 
+            UpdateMapPaint();
             
             List<Room> hallways = new List<Room>();
             Dictionary<Room, (int, int)> hallwaysEnds = new Dictionary<Room, (int, int)>();
+            // Paso 2: Crear pasillo del living a la entrada
+            // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
+            RayCastResult hallRaycast = Raycast(_livingRoom, true, new[] { 1 }, new[] { -1, 0 });
+            if (hallRaycast == null)
+                return false;
+
+            Room hall = null;
+            if (hallRaycast.Distance > 1) {
+                hall = hallRaycast.GetAsRoom(false, false);
+                hall.Texture = new Texture("Ground",Color.Brown);
+                hall.Text = "hall";
+                hall.Id = 3;
+                TryToPlaceRoom(hall, true);
+            }
             
-            // Paso 2: Crear pasillos desde el living room
+            UpdateMapPaint();
+            
+            // Paso 3: Crear pasillos desde el living room
             // Una vez creado el living room, se crean un pasillo desde el living room a la salida mas lejana
             if (GetFreeM2() > 10 * 5) {
                 RayCastResult pasilloPrincipalRaycast = Raycast(_livingRoom, false, new[] { 1 }, new[] { -1, 0 });
@@ -256,20 +275,9 @@ public class HouseGenerator {
                 hallways.Add(mainHallway);
                 hallwaysEnds.Add(mainHallway, mainHallway.points.Last());
             }
-            // Paso 3: Crear pasillo del living a la entrada
-            // Aca, si el living no esta pegado con una pared, se crea un pasillo desde el living a la entrada
-            RayCastResult hallRaycast = Raycast(_livingRoom, true, new[] { 1 }, new[] { -1, 0 });
-            if (hallRaycast == null)
-                return false;
+            
+            UpdateMapPaint();
 
-            Room hall = null;
-            if (hallRaycast.Distance > 1) {
-                hall = hallRaycast.GetAsRoom(false, false);
-                hall.Texture = new Texture("Ground",Color.Brown);
-                hall.Text = "hall";
-                hall.Id = 3;
-                TryToPlaceRoom(hall, true);
-            }
    
             // Primera etapa de generacion de habitaciones 
             List<Room> placedRooms = new List<Room>(); 
@@ -288,6 +296,8 @@ public class HouseGenerator {
                 }
             }
             
+            
+            UpdateMapPaint();
             // Big fill rooms pass
             // Si quedan espacios libres, se crean habitaciones
             while (GetBubbles().Count >= 1) {
@@ -308,6 +318,7 @@ public class HouseGenerator {
                 
             }
 
+            UpdateMapPaint();
 
             // Hallway maze pass.
             // Ahora mismo esta to.do lleno, pero, puede que hayan habitaciones muy grandes
@@ -320,6 +331,7 @@ public class HouseGenerator {
                 }
             }
             
+            UpdateMapPaint();
             bool hasChanged = true;
             List<List<(int, int)>> bubbles2 = GetBubbles();
             while (hasChanged) {
@@ -332,9 +344,9 @@ public class HouseGenerator {
                     // middles.Shuffle();
                     RayCastResult furthest = null;
                     foreach (var middle in middles) {
-                        Room point = new Room(1, 1, middle.Item1, middle.Item2, false, new Texture("Ground",Color.Red));
-                        point.Id = 1;
-                        TryToPlaceRoom(point);
+                        // Room point = new Room(1, 1, middle.Item1, middle.Item2, false, new Texture("Ground",Color.Red));
+                        // point.Id = 1;
+                        // TryToPlaceRoom(point);
                         
                         
                         RayCastResult raycast = Raycast(middle, true, new[] { 1 }, new[] { 3 });
@@ -356,7 +368,7 @@ public class HouseGenerator {
                     
                         dividerHallway.Texture = new Texture("Ground",Color.Brown);
                         dividerHallway.Id = 3;
-                        dividerHallway.Text = "77";
+                        dividerHallway.Text = "ramificacion";
                         TryToPlaceRoom(dividerHallway, true);
                         hasChanged = true;
                         bubbles2.Remove(bubble);
@@ -366,6 +378,7 @@ public class HouseGenerator {
                 }
             }
             
+            UpdateMapPaint();
             // Una vez creado el pasillo, se crean habitaciones en los espacios libres
             while (GetBubbles().Count >= 1) {
                 Room b = new Room(GetBubbles()[0]);
@@ -394,6 +407,7 @@ public class HouseGenerator {
             }
             
             
+            UpdateMapPaint();
             List<HouseRoomAssigner.RoomInfo> alreadyPlaced = new List<HouseRoomAssigner.RoomInfo>();
             alreadyPlaced.Add( new HouseRoomAssigner.RoomInfo() {
                 RoomType = RoomType.LivingRoom,
@@ -431,6 +445,7 @@ public class HouseGenerator {
                 TryToPlaceRoom(roomInfo.Room, true);
             }
 
+            UpdateMapPaint();
             
             Dictionary<(Object, Object), WallInfo> wallInfos = new Dictionary<(Object, Object), WallInfo>();
             
@@ -481,6 +496,8 @@ public class HouseGenerator {
                 }
             }
             
+            UpdateMapPaint();
+
             foreach (var keyValuePair in wallInfos) {
                 WallInfo wallInfo = keyValuePair.Value;
                 
@@ -539,12 +556,16 @@ public class HouseGenerator {
                 _tileRooms[dx, dy] = room;
             }
             
-            UpdateMapPaint();
             return true;
         }
 
         int _margin = 2;
         public void UpdateMapPaint() {
+            // Locked = true;
+            // while (Locked) {
+            //     Thread.Sleep(10);    
+            // }
+            
             for (int x = 0; x < _tileGrid.GetLength(0); x++) {
                 for (int y = 0; y < _tileGrid.GetLength(1); y++) {
                     Room room = GetRoom(x, y);
@@ -563,16 +584,17 @@ public class HouseGenerator {
                     }
                     else {
                         if (_tileGrid[x, y] == -1 || _tileGrid[x, y] == 0) {
-                            _map.Paint(new Texture("Grass"), x, y);
+                            _map.Paint(new Texture("Grass", Color.Green), x, y);
                         }
                         else {
-                            _map.Paint(new Texture("Empty"), x, y);
+                            _map.Paint(new Texture("Empty", Color.Black), x, y);
                         }
                     }
                 }
             }
-            // Thread.Sleep(100);
         }
+
+        public static bool Locked = false;
 
 
         public bool CanPlaceRoom(Room room) {
@@ -595,7 +617,6 @@ public class HouseGenerator {
                 _tileGrid[valueTuple.Item1, valueTuple.Item2] = 1;
                 _tileRooms[valueTuple.Item1, valueTuple.Item2] = null;
             }
-            UpdateMapPaint();
         }
         
         #endregion

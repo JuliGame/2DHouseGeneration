@@ -51,10 +51,10 @@ public class HouseGeneratorRenderer : Game
         
         
         // map = new Map(50, 40);
-        map = new Map(20, 20);
+        // map = new Map(20, 20);
 
         // map = new Map(25, 18);
-        // map = new Map(17, 12);
+        map = new Map(17, 12);
         // map = new Map(12, 8);
         Thread mapGeneratorThread = new Thread(() => {
             map.Generate(seed);
@@ -67,6 +67,7 @@ public class HouseGeneratorRenderer : Game
     Tile selectedTile;
     private bool pressR;
     private bool pressT;
+    public bool pressK;
     private int cameraX;
     private int cameraY;
     private float zoom = 1f;
@@ -100,6 +101,13 @@ public class HouseGeneratorRenderer : Game
         } else
             pressT = false;
 
+        if (Keyboard.GetState().IsKeyDown(Keys.K)) {
+            if (!pressK) {
+                global::HouseGenerator.HouseBuilder.Locked = false;
+            }
+            pressK = true;
+        } else
+            pressK = false;
         
         if (Keyboard.GetState().IsKeyDown(Keys.Space)) {
             if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
