@@ -278,7 +278,6 @@ public class HouseGenerator {
             
             UpdateMapPaint();
 
-   
             // Primera etapa de generacion de habitaciones 
             List<Room> placedRooms = new List<Room>(); 
             
@@ -320,6 +319,8 @@ public class HouseGenerator {
 
             UpdateMapPaint();
 
+                    
+
             // Hallway maze pass.
             // Ahora mismo esta to.do lleno, pero, puede que hayan habitaciones muy grandes
             // El hallway maze pass intenta dividir las habitaciones grandes en 2, poniento un pasillo en el medio
@@ -332,6 +333,8 @@ public class HouseGenerator {
             }
             
             UpdateMapPaint();
+
+
             bool hasChanged = true;
             List<List<(int, int)>> bubbles2 = GetBubbles();
             while (hasChanged) {
@@ -378,6 +381,7 @@ public class HouseGenerator {
                 }
             }
             
+            
             UpdateMapPaint();
             // Una vez creado el pasillo, se crean habitaciones en los espacios libres
             while (GetBubbles().Count >= 1) {
@@ -405,9 +409,82 @@ public class HouseGenerator {
             if (GetFreeM2() != 0) {
                 return false;
             }
-            
-            
+
             UpdateMapPaint();
+
+
+            // Aca habia un problema que a veces se generaban habitaciones de 1*N al lado de pasillos, asi que vamos a mergearlas
+            int n = 0;
+            foreach (var placedRoom in placedRooms.ToList()) {
+                n++;
+                bool isHall = (placedRoom.Width == 1 || placedRoom.Height == 1); // && placedRoom.GetSquareness() < 0.9f;                
+                if (!isHall)
+                    continue;
+
+                Side[] sides = new Side[] {Side.Top, Side.Right, Side.Bottom, Side.Left};
+                foreach (var side in sides) {
+                    List<(int, int)> pointsToTest = new List<(int, int)>();
+                    switch (side)
+                    {
+                        case Side.Top:
+                            placedRoom.GetPoinsOfSide(side).ForEach(p => pointsToTest.Add((p.Item1, p.Item2 - 1)));
+                            break;
+                        case Side.Bottom:
+                            placedRoom.GetPoinsOfSide(side).ForEach(p => pointsToTest.Add((p.Item1, p.Item2 + 1)));
+                            break;
+                        case Side.Left:
+                            placedRoom.GetPoinsOfSide(side).ForEach(p => pointsToTest.Add((p.Item1 - 1, p.Item2)));
+                            break;
+                        case Side.Right:
+                            placedRoom.GetPoinsOfSide(side).ForEach(p => pointsToTest.Add((p.Item1 + 1, p.Item2)));
+                            break;
+                    }                 
+
+
+                    bool canMerge = true;
+                    Room currentMergingRoom = null;
+                    foreach (var point in pointsToTest) {
+                        Room roomOnPoint = GetRoom(point.Item1, point.Item2);
+                        // roomOnPoint.Text = roomOnPoint.Text + " " + point.Item1 + " " + point.Item2;
+                        if (roomOnPoint == null) {
+                            canMerge = false;
+                            break;
+                        }
+                        if (!hallways.Contains(roomOnPoint) && hall != roomOnPoint){
+                            canMerge = false;
+                            break;
+                        }
+
+                        if (currentMergingRoom == null) {
+                            currentMergingRoom = roomOnPoint;
+                            continue;
+                        }
+
+                        if (currentMergingRoom != roomOnPoint){
+                            canMerge = false;
+                            break;
+                        }
+                    }
+
+                    if (canMerge) {
+                        placedRooms.Remove(placedRoom);                        
+                        Destroy(placedRoom);
+
+                        Room newHallway = new Room(placedRoom.points, new Texture("Ground", Color.Brown));
+                        newHallway.Text = "HW ext";
+                        TryToPlaceRoom(newHallway);
+                        hallways.Add(newHallway);
+                        hallwaysEnds.Add(newHallway, newHallway.points[0]);
+                        break;
+                    } else {
+                        placedRoom.Text = "not merged";
+                    }
+                }                
+            }
+
+            UpdateMapPaint();
+            // return true;
+
             List<HouseRoomAssigner.RoomInfo> alreadyPlaced = new List<HouseRoomAssigner.RoomInfo>();
             alreadyPlaced.Add( new HouseRoomAssigner.RoomInfo() {
                 RoomType = RoomType.LivingRoom,
@@ -497,6 +574,7 @@ public class HouseGenerator {
             }
             
             UpdateMapPaint();
+            
 
             foreach (var keyValuePair in wallInfos) {
                 WallInfo wallInfo = keyValuePair.Value;
