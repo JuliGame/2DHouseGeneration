@@ -1,0 +1,6 @@
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net8.0\HouseGeneration.csproj.AssemblyReference.cache
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net8.0\HouseGeneration.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net8.0\HouseGeneration.AssemblyInfoInputs.cache
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net8.0\HouseGeneration.AssemblyInfo.cs
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net8.0\HouseGeneration.csproj.CoreCompileInputs.cache
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net8.0\HouseGeneration.sourcelink.json

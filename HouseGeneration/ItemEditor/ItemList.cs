@@ -15,7 +15,7 @@ using ImGuiNET;
 
 public class ItemList
 {
-    public static String path = "/home/julian/ZEscape/Assets/Resources/Items";
+    public static String path = "C:/Users/7Dev/ZEscape/Assets/Resources/Items";
     
     private ItemEditorMain ItemEditorMain;
 
@@ -235,7 +235,7 @@ public class ItemList
             }
             categories[imgData.categories].Add(imgData);
         }
-        ImGui.BeginChild("Scrolling", new System.Numerics.Vector2(0), true);
+        ImGui.BeginChild("Scrolling", new System.Numerics.Vector2(0), ImGuiChildFlags.None);
         foreach (var VARIABLE in categories) {
             String category = VARIABLE.Key;
             if (category == "")

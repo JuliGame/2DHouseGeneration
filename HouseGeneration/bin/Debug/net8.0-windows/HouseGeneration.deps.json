@@ -1,0 +1,269 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "HouseGeneration/1.0.0": {
+        "dependencies": {
+          "Accord.Math": "3.8.2-alpha",
+          "MonoGame.Content.Builder.Task": "3.8.1.303",
+          "MonoGame.Framework.DesktopGL": "3.8.1.303",
+          "MonoGame.ImGuiNet": "1.1.0",
+          "NAudio.Core": "2.2.1",
+          "Newtonsoft.Json": "13.0.3",
+          "Shared": "1.0.0"
+        },
+        "runtime": {
+          "HouseGeneration.dll": {}
+        }
+      },
+      "Accord/3.8.2-alpha": {
+        "runtime": {
+          "lib/netstandard2.0/Accord.dll": {
+            "assemblyVersion": "3.8.2.0",
+            "fileVersion": "3.8.2.6153"
+          }
+        }
+      },
+      "Accord.Math/3.8.2-alpha": {
+        "dependencies": {
+          "Accord": "3.8.2-alpha"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Accord.Math.Core.dll": {
+            "assemblyVersion": "3.8.2.0",
+            "fileVersion": "3.8.2.6153"
+          },
+          "lib/netstandard2.0/Accord.Math.dll": {
+            "assemblyVersion": "3.8.2.0",
+            "fileVersion": "3.8.2.6153"
+          }
+        }
+      },
+      "ImGui.NET/1.90.1.1": {
+        "dependencies": {
+          "System.Buffers": "4.4.0",
+          "System.Numerics.Vectors": "4.4.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.4.0"
+        },
+        "runtime": {
+          "lib/net6.0/ImGui.NET.dll": {
+            "assemblyVersion": "1.90.1.1",
+            "fileVersion": "1.90.1.1"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/libcimgui.so": {
+            "rid": "linux-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/osx/native/libcimgui.dylib": {
+            "rid": "osx",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-arm64/native/cimgui.dll": {
+            "rid": "win-arm64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/cimgui.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x86/native/cimgui.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "MonoGame.Content.Builder.Task/3.8.1.303": {},
+      "MonoGame.Framework.DesktopGL/3.8.1.303": {
+        "runtime": {
+          "lib/net6.0/MonoGame.Framework.dll": {
+            "assemblyVersion": "3.8.1.303",
+            "fileVersion": "3.8.1.303"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/libSDL2-2.0.so.0": {
+            "rid": "linux-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/linux-x64/native/libopenal.so.1": {
+            "rid": "linux-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/osx/native/libSDL2.dylib": {
+            "rid": "osx",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/osx/native/libopenal.1.dylib": {
+            "rid": "osx",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/SDL2.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "2.0.20.0"
+          },
+          "runtimes/win-x64/native/soft_oal.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x86/native/SDL2.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "2.0.20.0"
+          },
+          "runtimes/win-x86/native/soft_oal.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "NAudio.Core/2.2.1": {
+        "runtime": {
+          "lib/netstandard2.0/NAudio.Core.dll": {
+            "assemblyVersion": "2.2.1.0",
+            "fileVersion": "2.2.1.0"
+          }
+        }
+      },
+      "Newtonsoft.Json/13.0.3": {
+        "runtime": {
+          "lib/net6.0/Newtonsoft.Json.dll": {
+            "assemblyVersion": "13.0.0.0",
+            "fileVersion": "13.0.3.27908"
+          }
+        }
+      },
+      "System.Buffers/4.4.0": {},
+      "System.Numerics.Vectors/4.4.0": {},
+      "System.Runtime.CompilerServices.Unsafe/4.4.0": {},
+      "MonoGame.ImGuiNet/1.1.0": {
+        "dependencies": {
+          "ImGui.NET": "1.90.1.1",
+          "MonoGame.Content.Builder.Task": "3.8.1.303",
+          "MonoGame.Framework.DesktopGL": "3.8.1.303"
+        },
+        "runtime": {
+          "Monogame.ImGuiNet.dll": {
+            "assemblyVersion": "1.1.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "Shared/1.0.0": {
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "runtime": {
+          "Shared.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "HouseGeneration/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Accord/3.8.2-alpha": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-g/EKYGdeMKTMJt7XtB65f+RyVW5ALfU1f1T1dpIGXOqzBtaaNK+OGB6pFY9RFrjKPQNUlnKUWF2jwH5knM+X7A==",
+      "path": "accord/3.8.2-alpha",
+      "hashPath": "accord.3.8.2-alpha.nupkg.sha512"
+    },
+    "Accord.Math/3.8.2-alpha": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-derpraljs7QO7U06DzGu1EHNVN+LGM2oA/z3M/zERSWXGs/BVOjMtUBx5WjdMnKXaM0OJiqZFNus3y3C04/H2w==",
+      "path": "accord.math/3.8.2-alpha",
+      "hashPath": "accord.math.3.8.2-alpha.nupkg.sha512"
+    },
+    "ImGui.NET/1.90.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/VNgkRywtXV72cpxtBj09nZX9Yx+xG3NxiwEEXPVcK+pHKHA31cPJKy425tDGj68tgRbCS+C+DG8puBj3iJ4zA==",
+      "path": "imgui.net/1.90.1.1",
+      "hashPath": "imgui.net.1.90.1.1.nupkg.sha512"
+    },
+    "MonoGame.Content.Builder.Task/3.8.1.303": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9Ilzzje62LhWElbPNEl7vh7XsRSbze+lvCJdZtTZUGu48FRgvYN6THURwIB9PN98EI33/Wnf6iuShNUtD7hL4Q==",
+      "path": "monogame.content.builder.task/3.8.1.303",
+      "hashPath": "monogame.content.builder.task.3.8.1.303.nupkg.sha512"
+    },
+    "MonoGame.Framework.DesktopGL/3.8.1.303": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-eGYhqn0n1olk8MNYeE9EuBmoNNECN1T18rPMaQpkzsEQ0H3nVyFPXC+uCo78v5pi5juQpJ3PSFnSkjzZJ1U58A==",
+      "path": "monogame.framework.desktopgl/3.8.1.303",
+      "hashPath": "monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
+    },
+    "NAudio.Core/2.2.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GgkdP6K/7FqXFo7uHvoqGZTJvW4z8g2IffhOO4JHaLzKCdDOUEzVKtveoZkCuUX8eV2HAINqi7VFqlFndrnz/g==",
+      "path": "naudio.core/2.2.1",
+      "hashPath": "naudio.core.2.2.1.nupkg.sha512"
+    },
+    "Newtonsoft.Json/13.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
+      "path": "newtonsoft.json/13.0.3",
+      "hashPath": "newtonsoft.json.13.0.3.nupkg.sha512"
+    },
+    "System.Buffers/4.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AwarXzzoDwX6BgrhjoJsk6tUezZEozOT5Y9QKF94Gl4JK91I4PIIBkBco9068Y9/Dra8Dkbie99kXB8+1BaYKw==",
+      "path": "system.buffers/4.4.0",
+      "hashPath": "system.buffers.4.4.0.nupkg.sha512"
+    },
+    "System.Numerics.Vectors/4.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UiLzLW+Lw6HLed1Hcg+8jSRttrbuXv7DANVj0DkL9g6EnnzbL75EB7EWsw5uRbhxd/4YdG8li5XizGWepmG3PQ==",
+      "path": "system.numerics.vectors/4.4.0",
+      "hashPath": "system.numerics.vectors.4.4.0.nupkg.sha512"
+    },
+    "System.Runtime.CompilerServices.Unsafe/4.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9dLLuBxr5GNmOfl2jSMcsHuteEg32BEfUotmmUkmZjpR3RpVHE8YQwt0ow3p6prwA1ME8WqDVZqrr8z6H8G+Kw==",
+      "path": "system.runtime.compilerservices.unsafe/4.4.0",
+      "hashPath": "system.runtime.compilerservices.unsafe.4.4.0.nupkg.sha512"
+    },
+    "MonoGame.ImGuiNet/1.1.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Shared/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -49,7 +49,7 @@ public class HouseRoomAssigner
             new [] { RoomType.Kitchen, RoomType.Garage, RoomType.Machines, RoomType.Storage },
             null);
         
-        AbstractRoom bedroom = new AbstractRoom(RoomType.Bedroom, 4, .3f, false);
+        AbstractRoom bedroom = new AbstractRoom(RoomType.Bedroom, 4, .3f, false, null, null);
             
         PlaceRoom(kitchen);
         PlaceRoom(bathroom);

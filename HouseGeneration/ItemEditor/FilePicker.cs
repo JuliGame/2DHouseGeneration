@@ -63,7 +63,7 @@ namespace HouseGeneration.ItemEditor
 			ImGui.Text("Current Folder: " + Path.GetFileName(RootFolder) + CurrentFolder.Replace(RootFolder, ""));
 			bool result = false;
 
-			if (ImGui.BeginChildFrame(1, new Num.Vector2(400, 400)))
+			if (ImGui.BeginChild(1, new Num.Vector2(400, 400)))
 			{
 				var di = new DirectoryInfo(CurrentFolder);
 				if (di.Exists)
@@ -104,7 +104,7 @@ namespace HouseGeneration.ItemEditor
 					}
 				}
 			}
-			ImGui.EndChildFrame();
+			ImGui.EndChild();
 
 
 			if (ImGui.Button("Cancel"))

@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "1s4BBmGSWKw=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\7Dev\\2DHouseGeneration\\Shared\\Shared.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\7Dev\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

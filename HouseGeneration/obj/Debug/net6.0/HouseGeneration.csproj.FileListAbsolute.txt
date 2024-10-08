@@ -41,3 +41,12 @@
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/obj/Debug/net6.0/HouseGeneration.sourcelink.json
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/NAudio.WinForms.dll
 /home/julian/RiderProjects/HouseGeneration/HouseGeneration/bin/Debug/net6.0/NAudio.WinForms.xml
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.csproj.AssemblyReference.cache
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.AssemblyInfoInputs.cache
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.AssemblyInfo.cs
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.csproj.CoreCompileInputs.cache
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.sourcelink.json
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.dll
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\refint\HouseGeneration.dll
+C:\Users\7Dev\2DHouseGeneration\HouseGeneration\obj\Debug\net6.0\HouseGeneration.pdb

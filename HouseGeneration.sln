@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HouseGeneration", "HouseGeneration\HouseGeneration.csproj", "{9D36606D-9289-4D84-A26E-E2345AE00B75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monogame.ImGuiNet", "..\..\MonoGame.ImGuiNet-main\Monogame.ImGuiNet.csproj", "{B0209D8D-03F6-4087-A98B-DFB22E24911B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monogame.ImGuiNet", "C:\Users\7Dev\MonoGame.ImGuiNet-main\MonoGame.ImGuiNet\Monogame.ImGuiNet.csproj", "{B0209D8D-03F6-4087-A98B-DFB22E24911B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{7DA9CC3C-B77C-477A-AD6A-1599762CF762}"
 EndProject

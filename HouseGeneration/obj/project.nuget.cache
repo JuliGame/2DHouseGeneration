@@ -1,21 +1,19 @@
 {
   "version": 2,
-  "dgSpecHash": "EyCNl6iaEEtG1IVsM6swqzCtyKe0f6dw3rZcm+8fgdnYvxTA2zYADR9pO3+/0K/O8JAGpiFFs/tXlDlSSBgPzA==",
+  "dgSpecHash": "BAmGMYW0JUk=",
   "success": true,
-  "projectFilePath": "/home/julian/RiderProjects/HouseGeneration/HouseGeneration/HouseGeneration.csproj",
+  "projectFilePath": "C:\\Users\\7Dev\\2DHouseGeneration\\HouseGeneration\\HouseGeneration.csproj",
   "expectedPackageFiles": [
-    "/home/julian/.nuget/packages/accord/3.8.2-alpha/accord.3.8.2-alpha.nupkg.sha512",
-    "/home/julian/.nuget/packages/accord.math/3.8.2-alpha/accord.math.3.8.2-alpha.nupkg.sha512",
-    "/home/julian/.nuget/packages/imgui.net/1.89.7.1/imgui.net.1.89.7.1.nupkg.sha512",
-    "/home/julian/.nuget/packages/monogame.content.builder.task/3.8.1.303/monogame.content.builder.task.3.8.1.303.nupkg.sha512",
-    "/home/julian/.nuget/packages/monogame.framework.desktopgl/3.8.1.303/monogame.framework.desktopgl.3.8.1.303.nupkg.sha512",
-    "/home/julian/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
-    "/home/julian/.nuget/packages/system.buffers/4.4.0/system.buffers.4.4.0.nupkg.sha512",
-    "/home/julian/.nuget/packages/system.numerics.vectors/4.4.0/system.numerics.vectors.4.4.0.nupkg.sha512",
-    "/home/julian/.nuget/packages/system.runtime.compilerservices.unsafe/4.4.0/system.runtime.compilerservices.unsafe.4.4.0.nupkg.sha512",
-    "/home/julian/.nuget/packages/microsoft.netcore.app.ref/6.0.25/microsoft.netcore.app.ref.6.0.25.nupkg.sha512",
-    "/home/julian/.nuget/packages/microsoft.aspnetcore.app.ref/6.0.25/microsoft.aspnetcore.app.ref.6.0.25.nupkg.sha512",
-    "/home/julian/.nuget/packages/microsoft.netcore.app.host.linux-x64/6.0.25/microsoft.netcore.app.host.linux-x64.6.0.25.nupkg.sha512"
+    "C:\\Users\\7Dev\\.nuget\\packages\\accord\\3.8.2-alpha\\accord.3.8.2-alpha.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\accord.math\\3.8.2-alpha\\accord.math.3.8.2-alpha.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\imgui.net\\1.90.1.1\\imgui.net.1.90.1.1.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\naudio.core\\2.2.1\\naudio.core.2.2.1.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\system.buffers\\4.4.0\\system.buffers.4.4.0.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\system.numerics.vectors\\4.4.0\\system.numerics.vectors.4.4.0.nupkg.sha512",
+    "C:\\Users\\7Dev\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.4.0\\system.runtime.compilerservices.unsafe.4.4.0.nupkg.sha512"
   ],
   "logs": []
 }
