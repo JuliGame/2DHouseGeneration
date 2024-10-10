@@ -857,7 +857,7 @@ public class HouseGenerator {
         HouseBuilder houseBuilder = new HouseBuilder(map, tiles, margin);
         if (!houseBuilder.BuildHouse()) {
             Console.Out.WriteLine("No se pudo generar la casa");
-            map.Generate(Random.Next());
+            map.GenerateHouse(Random.Next());
             return;
         }
     }

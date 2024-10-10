@@ -1,8 +1,5 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35222.181
-MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HouseGeneration", "HouseGeneration\HouseGeneration.csproj", "{9D36606D-9289-4D84-A26E-E2345AE00B75}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monogame.ImGuiNet", "C:\Users\7Dev\MonoGame.ImGuiNet-main\MonoGame.ImGuiNet\Monogame.ImGuiNet.csproj", "{B0209D8D-03F6-4087-A98B-DFB22E24911B}"
@@ -27,11 +24,5 @@ Global
 		{7DA9CC3C-B77C-477A-AD6A-1599762CF762}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DA9CC3C-B77C-477A-AD6A-1599762CF762}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DA9CC3C-B77C-477A-AD6A-1599762CF762}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {AEE7CAAB-6ECA-4BCC-98EF-A9D7091812C4}
 	EndGlobalSection
 EndGlobal

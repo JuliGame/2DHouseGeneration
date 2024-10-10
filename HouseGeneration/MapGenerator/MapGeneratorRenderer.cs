@@ -1,18 +1,19 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
 
-namespace HouseGeneration.HouseGenerator;
+namespace HouseGeneration.MapGeneratorRenderer;
 
-public class HouseGeneratorRenderer : Game
+public class MapGeneratorRenderer : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
-    public HouseGeneratorRenderer()
+    public MapGeneratorRenderer()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
@@ -50,14 +51,10 @@ public class HouseGeneratorRenderer : Game
         wallMargin = IwallMargin;
         
         
-         map = new Map(50, 40);
-        // map = new Map(20, 20);
+         map = new Map(1000, 1000);
 
-        // map = new Map(25, 18);
-        // map = new Map(17, 12);
-        // map = new Map(12, 8);
         Thread mapGeneratorThread = new Thread(() => {
-            map.GenerateHouse(seed);
+            map.Generate(seed);
         });
         mapGeneratorThread.Start();
 
@@ -81,7 +78,7 @@ public class HouseGeneratorRenderer : Game
         if (Keyboard.GetState().IsKeyDown(Keys.R)) {
             if (!pressR) {
                 if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
-                    mapGeneratorThread = new Thread(() => { map.GenerateHouse(seed); });
+                    mapGeneratorThread = new Thread(() => { map.Generate(seed); });
                     mapGeneratorThread.Start();
                 }
             }
@@ -93,7 +90,7 @@ public class HouseGeneratorRenderer : Game
             if (!pressT) {
                 if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
                     seed++;
-                    mapGeneratorThread = new Thread(() => { map.GenerateHouse(seed); });
+                    mapGeneratorThread = new Thread(() => { map.Generate(seed); });
                     mapGeneratorThread.Start();
                 }
             }
@@ -112,7 +109,7 @@ public class HouseGeneratorRenderer : Game
         if (Keyboard.GetState().IsKeyDown(Keys.Space)) {
             if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
                 seed++;
-                mapGeneratorThread = new Thread(() => { map.GenerateHouse(seed); });
+                mapGeneratorThread = new Thread(() => { map.Generate(seed); });
                 mapGeneratorThread.Start();
             }
         }
@@ -200,88 +197,99 @@ public class HouseGeneratorRenderer : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
+        
         Texture2D singlePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         singlePixelTexture.SetData(new[] { Color.White }); // white pixel
         
-        _spriteBatch.Begin();
-        for (int x = 0; x < map.x; x++)
+        _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null, Matrix.CreateScale(zoom) * Matrix.CreateTranslation(cameraX, cameraY, 0));
+
+        // Calculate visible area
+        int startX = Math.Max(0, (int)(-cameraX / (squareSize * zoom)));
+        int startY = Math.Max(0, (int)(-cameraY / (squareSize * zoom)));
+        int endX = Math.Min(map.x, (int)((GraphicsDevice.Viewport.Width - cameraX) / (squareSize * zoom)) + 1);
+        int endY = Math.Min(map.y, (int)((GraphicsDevice.Viewport.Height - cameraY) / (squareSize * zoom)) + 1);
+
+        // Draw only visible tiles
+        for (int x = startX; x < endX; x++)
         {
-            for (int y = 0; y < map.y; y++)
+            for (int y = startY; y < endY; y++)
             {
-                // Here you can set whatever color you like
                 _spriteBatch.Draw(
                     singlePixelTexture,
-                    new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, squareSize),
+                    new Rectangle(x * squareSize, y * squareSize, squareSize, squareSize),
                     fromSysColor(map.GetTile(x, y).Texture.Color));
             }
         }
 
-        // Draw grid lines
-        for (int ix = 0; ix < map.x*2+1; ix++) {
-            for (int iy = 0; iy < map.y*2+1; iy++) {
-                
-                int x = ix / 2;
-                int y = iy / 2;
-                
-                Wall wall = map.GetWall(ix, iy);
-                Color color =  fromSysColor(wall.Texture.Color);
-                if (ix % 2 == 1) {
-                    if (iy % 2 == 1) {
-                        SpriteFont font = Content.Load<SpriteFont>("Arial");
-                        // string text = x + ";" + y;
-                        
-                        string text = map.GetTile(x, y).Text;
-                        if (string.IsNullOrEmpty(text))
-                            continue;
-                        
-                        Vector2 textSize = font.MeasureString(text);
-                        float scale = 0.7f; // Adjust this value to something that suits your needs.
-                        textSize *= scale;
-                        Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f + cameraX,
-                            y * squareSize + squareSize / 2f - textSize.Y / 2f + cameraY);
-                        
-                        _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
-                        continue;
-                    }
+        System.Console.WriteLine("Draw");
 
-                    if (wall.isHalf) {
-                        if (wall.isTopOrLeft) {
-                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize / 2, (int)
-                                (wallWidth * wall.Thickness)), color); 
-                        }
-                        else {
-                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX + squareSize / 2, y * squareSize + cameraY, squareSize / 2, (int)
-                                (wallWidth * wall.Thickness)), color);
-                        }
-                    }
-                    else {
-                        _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, (int)
-                            (wallWidth * wall.Thickness)), color);
-                    }
+        // Draw only visible grid lines
+        // for (int ix = startX * 2; ix <= endX * 2; ix++)
+        // {
+        //     for (int iy = startY * 2; iy <= endY * 2; iy++)
+        //     {
+        //         Wall wall = map.GetWall(ix, iy);
+        //         Color color = fromSysColor(wall.Texture.Color);
+        //         if (ix % 2 == 1)
+        //         {
+        //             if (iy % 2 == 1)
+        //             {
+        //                 // Draw tile text
+        //                 int x = ix / 2;
+        //                 int y = iy / 2;
+        //                 SpriteFont font = Content.Load<SpriteFont>("Arial");
+        //                 string text = map.GetTile(x, y).Text;
+        //                 if (!string.IsNullOrEmpty(text))
+        //                 {
+        //                     Vector2 textSize = font.MeasureString(text);
+        //                     float scale = 0.7f;
+        //                     textSize *= scale;
+        //                     Vector2 position = new Vector2(x * squareSize + squareSize / 2f - textSize.X / 2f,
+        //                         y * squareSize + squareSize / 2f - textSize.Y / 2f);
+                            
+        //                     _spriteBatch.DrawString(font, text, position, Color.Black, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+        //                 }
+        //                 continue;
+        //             }
 
-                } else {
-                    if (iy == map.y*2)
-                        continue;
+        //             if (wall.isHalf) {
+        //                 if (wall.isTopOrLeft) {
+        //                     _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize / 2, (int)
+        //                         (wallWidth * wall.Thickness)), color); 
+        //                 }
+        //                 else {
+        //                     _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX + squareSize / 2, y * squareSize + cameraY, squareSize / 2, (int)
+        //                         (wallWidth * wall.Thickness)), color);
+        //                 }
+        //             }
+        //             else {
+        //                 _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, (int)
+        //                     (wallWidth * wall.Thickness)), color);
+        //             }
+
+        //         } else {
+        //             if (iy == map.y*2)
+        //                 continue;
                     
-                    if (wall.isHalf) {
-                        if (wall.isTopOrLeft) {
-                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, (int)
-                                (wallWidth * wall.Thickness), squareSize / 2), color); 
-                        }
-                        else {
-                            _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY + squareSize / 2, (int)
-                                (wallWidth * wall.Thickness), squareSize / 2), color);
-                        }
-                    }
-                    else {
-                        _spriteBatch.Draw(singlePixelTexture,
-                            new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, (int)
-                                (wallWidth * wall.Thickness), squareSize),
-                            color);
-                    }
-                }
-            }
-        }
+        //             if (wall.isHalf) {
+        //                 if (wall.isTopOrLeft) {
+        //                     _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, (int)
+        //                         (wallWidth * wall.Thickness), squareSize / 2), color); 
+        //                 }
+        //                 else {
+        //                     _spriteBatch.Draw(singlePixelTexture, new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY + squareSize / 2, (int)
+        //                         (wallWidth * wall.Thickness), squareSize / 2), color);
+        //                 }
+        //             }
+        //             else {
+        //                 _spriteBatch.Draw(singlePixelTexture,
+        //                     new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, (int)
+        //                         (wallWidth * wall.Thickness), squareSize),
+        //                     color);
+        //             }
+        //         }
+        //     }
+        // }
         _spriteBatch.End();
 
         base.Draw(gameTime);

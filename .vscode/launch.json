@@ -2,25 +2,93 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // Use IntelliSense to find out which attributes exist for C# debugging
-            // Use hover for the description of the existing attributes
-            // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
-            "name": ".NET Core Launch (console)",
+            "name": "Client (Debug)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/HouseGeneration/bin/Debug/net6.0/HouseGeneration.dll",
+            "preLaunchTask": "build-client-debug",
+            "program": "${workspaceFolder}/HouseGeneration/bin/Debug/net8.0-windows/HouseGeneration.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/HouseGeneration",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "cwd": "${workspaceFolder}/Dist",
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "justMyCode": false,
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
-            "name": ".NET Core Attach",
+            "name": "Server (Debug)",
             "type": "coreclr",
-            "request": "attach"
+            "request": "launch",
+            "preLaunchTask": "build-server-debug",
+            "program": "${workspaceFolder}/Build/Debug/HardServer.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/Dist",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false,
+            "logging": {
+                "moduleLoad": false
+            }
+        },
+        {
+            "name": "Client (netcoredbg)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-client-debug",
+            "program": "${workspaceFolder}/HouseGeneration/bin/Debug/net8.0-windows/HouseGeneration.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Dist",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false,
+            "logging": {
+                "moduleLoad": false
+            },
+            "internalConsoleOptions": "openOnSessionStart",
+            "pipeTransport": {
+                "pipeProgram": "cmd",
+                "pipeArgs": ["/c"],
+                "debuggerPath": "C:\\netcoredbg\\netcoredbg.exe",
+                "quoteArgs": false
+            }
+        },
+        {
+            "name": "Server (netcoredbg)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-server-debug",
+            "program": "${workspaceFolder}/Build/Debug/HardServer.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Dist",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": false,
+            "logging": {
+                "moduleLoad": false
+            },
+            "internalConsoleOptions": "openOnSessionStart",
+            "pipeTransport": {
+                "pipeProgram": "cmd",
+                "pipeArgs": ["/c"],
+                "debuggerPath": "${env:NETCOREDBG_PATH}\\netcoredbg.exe"
+            }
+        },
+    ],
+    "compounds": [
+        {
+            "name": "Server/Client (Debug)",
+            "configurations": [
+                "Server (Debug)",
+                "Client (Debug)"
+            ]
+        },
+        {
+            "name": "Server/Client (netcoredbg)",
+            "configurations": [
+                "Server (netcoredbg)",
+                "Client (netcoredbg)"
+            ]
         }
     ]
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using HouseGeneration.HouseGenerator;
+using HouseGeneration.MapGeneratorRenderer;
 using HouseGeneration.ItemEditor;
 
 static class Program
@@ -17,7 +18,7 @@ static class Program
             //using var game = new HouseGeneratorRenderer();
             // using var game = new ItemEditorMain();
             
-            using (var game = new HouseGeneratorRenderer())
+            using (var game = new MapGeneratorRenderer())
             {
                 game.Run();
             }

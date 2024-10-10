@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-
+using Shared.ProceduralGeneration.Island;
 using Shared.ProceduralGeneration.Util;
 
 namespace Shared.ProceduralGeneration
@@ -19,13 +19,16 @@ namespace Shared.ProceduralGeneration
             tiles = new Tile[x, y];
             walls = new Wall[x*2+1, y*2+1];
         
-            GenerateEmpty();
+            GenerateEmpty(0);
         }
 
-        private void GenerateEmpty() {
+        private void GenerateEmpty(int seed) {
+            Random random = new Random(seed);
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) { 
-                    tiles[i, j] = new Tile(new Texture("Grass", Color.Green));
+                    int shade = random.Next(50, 150);
+                    Color randomGreen = Color.FromArgb(0, shade, 0);
+                    tiles[i, j] = new Tile(new Texture("Grass", randomGreen));
                 }
             }
         
@@ -36,10 +39,17 @@ namespace Shared.ProceduralGeneration
             }
         }
 
-        public void Generate(int seed) {
-            GenerateEmpty();
+        public void GenerateHouse(int seed) {
+            GenerateEmpty(seed);
         
             HouseGenerator.Generate(this, seed);
+        }
+
+        public void Generate(int seed) {
+            // GenerateEmpty(seed);
+            Console.WriteLine("Generating map");
+
+            GenerateShape.GenerateIsland(this, seed);
         }
 
 
