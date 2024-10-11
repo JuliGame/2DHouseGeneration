@@ -191,6 +191,39 @@ namespace Shared.ProceduralGeneration.Island
             return floatMask;
         }
 
+        public static float[,] Normalize(float[,] floatMask)
+        {
+            int width = floatMask.GetLength(0);
+            int height = floatMask.GetLength(1);
+            float[,] normalizedMask = new float[width, height];
+
+            float minValue = float.MaxValue;
+            float maxValue = float.MinValue;
+
+            // Find min and max values
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    minValue = Math.Min(minValue, floatMask[x, y]);
+                    maxValue = Math.Max(maxValue, floatMask[x, y]);
+                }
+            }
+
+            float range = maxValue - minValue;
+
+            // Normalize values to [0, 1] range
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    normalizedMask[x, y] = (floatMask[x, y] - minValue) / range;
+                }
+            }
+
+            return normalizedMask;
+        }
+
         
         public static float[,] MultiplyFloatMasks(float[,] mask1, float[,] mask2)
         {
@@ -251,6 +284,40 @@ namespace Shared.ProceduralGeneration.Island
                 for (int y = 0; y < height; y++)
                 {
                     resultMask[x, y] = mask1[x, y] || mask2[x, y];
+                }
+            }
+
+            return resultMask;
+        }
+
+        public static float[,] AddMasks(float[,] mask1, float[,] mask2)
+        {
+            int width = mask1.GetLength(0);
+            int height = mask1.GetLength(1);
+            float[,] resultMask = new float[width, height];
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    resultMask[x, y] = (mask1[x, y] + mask2[x, y]) * .5f;
+                }
+            }
+
+            return resultMask;
+        }
+
+        public static float[,] Multiply(float[,] mask, float value)
+        {
+            int width = mask.GetLength(0);
+            int height = mask.GetLength(1);
+            float[,] resultMask = new float[width, height];
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    resultMask[x, y] = mask[x, y] * value;
                 }
             }
 

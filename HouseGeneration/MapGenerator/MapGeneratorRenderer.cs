@@ -75,6 +75,7 @@ public class MapGeneratorRenderer : Game
         
         // map = new Map(3000, 3000); // huge 6gb of ram
         map = new Map(1000, 1000); // nice, 1gb
+        // map = new Map(100, 100); // ok, 0.2gb
 
         Thread mapGeneratorThread = new Thread(() => {
             map.Generate(seed);

@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using Shared.ProceduralGeneration.Island;
 using Shared.ProceduralGeneration.Util;
+using static Shared.ProceduralGeneration.Island.GenerateBiomes;
 
 namespace Shared.ProceduralGeneration
 {
@@ -51,21 +52,37 @@ namespace Shared.ProceduralGeneration
         }
 
         public void Generate(int seed) {
-            // GenerateEmpty(seed);
+            GenerateEmpty(seed);
             Console.WriteLine("Generating map");
 
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
 
-            
-            MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));            
+
+            // MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));            
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
             
             int riverAmmount = (int) (getM2() / 1000000) * 3;
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
+            // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
+
+            float[,] humidityMap = GetWeather.GetHumidity(this, waterMask, islandHeightMap, riverMask, seed);
+            // MaskUtils.DebugPaintFloatMask(this, humidityMap);
+
+            
+            float[,] temperatureMap = GetWeather.GetTemperature(this, waterMask, islandHeightMap, riverMask, seed);
+            // MaskUtils.DebugPaintFloatMask(this, temperatureMap);
+
+            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap);
+            for (int i = 0; i < x; i++) {
+                for (int j = 0; j < y; j++) {
+                    Biome biome = biomeMap[i, j];
+                    Paint(new Texture(biome.ToString(), GenerateBiomes.BiomeConfigurations[biome].Color), i, j);
+                }
+            }
+
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
 
-            MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
             MapChanged = true;
         }
 
