@@ -64,8 +64,13 @@ namespace Shared.ProceduralGeneration.Island
             }
         }
         
-        private static bool[,] GenerateRiver(Map map, bool[,] waterMask, float[,] mergedHeightMap, bool[,] riverMask, Random random)
-        {
+        private static bool[,] GenerateRiver(Map map, bool[,] waterMask, float[,] mergedHeightMap, bool[,] riverMask, Random random, int attempt = 0)        {
+            if (attempt > 10) {
+                return new bool[map.x, map.y];
+            }
+
+            bool[,] riverMask_original = (bool[,]) riverMask.Clone();
+
             // we define a director vector to move the river
             (float x, float y) direction = (random.Next(-10, 10) * .1f, random.Next(-10, 10) * .1f);
 
@@ -84,7 +89,7 @@ namespace Shared.ProceduralGeneration.Island
                 if (startPoint.x >= 0 && startPoint.x < map.x && startPoint.y >= 0 && startPoint.y < map.y) {
                     if (riverMask[(int)startPoint.x, (int)startPoint.y]) {
                         // If we hit an existing river, terminate
-                        return new bool[map.x, map.y];
+                        // return new bool[map.x, map.y];
                     }
                 } else {
                     break;
@@ -101,87 +106,80 @@ namespace Shared.ProceduralGeneration.Island
             int height = map.y;
 
             bool[,] visited = new bool[width, height];
+            int visitedCount = 0;
             while (startPoint.x >= 0 && startPoint.x < width && startPoint.y >= 0 && startPoint.y < height && !waterMask[(int) startPoint.x, (int) startPoint.y])
             {
                 (direction.x, direction.y) = RotateVector(direction.x, direction.y, startPoint.x, startPoint.y, mergedHeightMap);
 
+                // ModifyHeightMap(mergedHeightMap, (int) (startPoint.x - direction.x), (int) (startPoint.y - direction.y), 3, 0f);
+
                 startPoint.x += direction.x;
                 startPoint.y += direction.y;     
-                System.Console.WriteLine($"2 Walking to {startPoint.x}, {startPoint.y}");
                 if (startPoint.x >= 0 && startPoint.x < width && startPoint.y >= 0 && startPoint.y < height) {
                     if (riverMask[(int)startPoint.x, (int)startPoint.y]) {
                         // If we hit an existing river, terminate
-                        return visited;
+                        break;
                     }
                     visited[(int) startPoint.x, (int) startPoint.y] = true;
-                    
+                    visitedCount++;
                     // Modify the height map to create a river channel
-                    ModifyHeightMap(mergedHeightMap, (int) startPoint.x, (int) startPoint.y, 10, 0.033f);
                 } else {
                     break;
                 }
             }
+
+            if (visitedCount < 200) {
+                return GenerateRiver(map, waterMask, mergedHeightMap, riverMask_original, random, attempt + 1);
+            }
+
             return visited;
         }
 
+        private static float comeBack = 0;
         private static (float x, float y) RotateVector(float vx, float vy, float px, float py, float[,] mergedHeightMap) {
             // Calculate the angle of the gradient
+            float currentAngle = (float)Math.Atan2(vy, vx);
             float gradientAngle = 0;
-            if (random.Next(0, 100) < 40) {
-                (float gradX, float gradY) = CalculateGradient(px, py, mergedHeightMap);
-                float magnitude = (float)Math.Sqrt(gradX * gradX + gradY * gradY);
-                gradientAngle = (float)Math.Atan2(gradY, gradX) * magnitude;
-            }
+            // if (random.Next(0, 100) < 10) {
+                int rays = 3;
+                float apperture = 45f;
+                float separation = apperture / rays;
+
+                float highestGradient = 0;
+                float highestAngle = 0;
+                for (int i = 0; i < rays; i++) {
+                    float angle = (i * separation) - (apperture / 2);
+                    float finalAngle_temp = angle + currentAngle;
+                    float gradX = (float)Math.Cos(finalAngle_temp);
+                    float gradY = (float)Math.Sin(finalAngle_temp);
+                    float distance = 15;
+                    float gradient = mergedHeightMap[(int)(px + gradX * distance), (int)(py + gradY * distance)];
+                    if (gradient > highestGradient) {
+                        highestGradient = gradient;
+                        highestAngle = angle;
+                    }
+                }
+
+                gradientAngle = highestAngle * .0002f;
+            // }
+
             float randomAngle = 0;
-            if (random.Next(0, 100) < 10) {
+            if (comeBack != 0) {
+                if (random.Next(0, 100) < 30) {
+                    randomAngle = comeBack;
+                    comeBack = 0;
+                }
+            } else if (random.Next(0, 100) < 20) {
                 randomAngle = (random.Next(-100, 100)) * 0.005f;
+                comeBack = -randomAngle;
             }
 
-            float currentAngle = (float)Math.Atan2(vy, vx);
             float finalAngle = currentAngle + gradientAngle + randomAngle;
 
             float length = (float)Math.Sqrt(vx * vx + vy * vy);
             return (length * (float)Math.Cos(finalAngle), length * (float)Math.Sin(finalAngle));
         }
 
-        private static (float x, float y) CalculateGradient(float px, float py, float[,] mergedHeightMap)
-        {
-            int x = (int)px;
-            int y = (int)py;
-            int width = mergedHeightMap.GetLength(0);
-            int height = mergedHeightMap.GetLength(1);
-
-            float gradX = 0;
-            float gradY = 0;
-
-            if (x > 0 && x < width - 1)
-            {
-                gradX = (mergedHeightMap[x - 1, y] - mergedHeightMap[x + 1, y]) / 2;
-            }
-            else if (x > 0)
-            {
-                gradX = mergedHeightMap[x - 1, y] - mergedHeightMap[x, y];
-            }
-            else if (x < width - 1)
-            {
-                gradX = mergedHeightMap[x, y] - mergedHeightMap[x + 1, y];
-            }
-
-            if (y > 0 && y < height - 1)
-            {
-                gradY = (mergedHeightMap[x, y - 1] - mergedHeightMap[x, y + 1]) / 2;
-            }
-            else if (y > 0)
-            {
-                gradY = mergedHeightMap[x, y - 1] - mergedHeightMap[x, y];
-            }
-            else if (y < height - 1)
-            {
-                gradY = mergedHeightMap[x, y] - mergedHeightMap[x, y + 1];
-            }
-
-            return (gradX, gradY);
-        }
         private static void ModifyHeightMap(float[,] heightMap, int x, int y, int radius, float depthFactor)
         {
             int width = heightMap.GetLength(0);

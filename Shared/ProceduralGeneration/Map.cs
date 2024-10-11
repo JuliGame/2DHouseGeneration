@@ -57,23 +57,15 @@ namespace Shared.ProceduralGeneration
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
 
-            // MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
-            MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));
-            // MapChanged = true;
-            // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 70)));
             
+            MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));            
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
-            int[,] waterDistanceMap = MaskUtils.CreateDistanceMask(waterMask, 250);
-
-            float[,] waterDistanceFloatMap = MaskUtils.ConvertIntToFloatMask(waterDistanceMap);
-            float[,] merged = MaskUtils.MagicMerge(islandHeightMap, waterDistanceFloatMap);
             
-            // bool[,] riverMask = MaskUtils.GetHigherThan(merged, 0.9f);
-            int riverAmmount = (int) (getM2() / 1000000) * 2;
-            bool[,] riverMask = GenerateRivers.Generate(this, waterMask, merged, seed, riverAmmount);
+            int riverAmmount = (int) (getM2() / 1000000) * 3;
+            bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
 
-            // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
+            MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
             MapChanged = true;
         }
 

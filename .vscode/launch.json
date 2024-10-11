@@ -51,6 +51,9 @@
                 "pipeArgs": ["/c"],
                 "debuggerPath": "C:\\netcoredbg\\netcoredbg.exe",
                 "quoteArgs": false
+            },
+            "env": {
+                "DOTNET_HOTRELOAD": "1"
             }
         },
         {
