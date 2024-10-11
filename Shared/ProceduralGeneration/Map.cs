@@ -57,8 +57,9 @@ namespace Shared.ProceduralGeneration
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
 
-            MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
+            // MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
             MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));
+            // MapChanged = true;
             // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 70)));
             
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
@@ -73,6 +74,7 @@ namespace Shared.ProceduralGeneration
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
 
             // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
+            MapChanged = true;
         }
 
 
@@ -81,14 +83,12 @@ namespace Shared.ProceduralGeneration
         
             tiles[x, y].Texture = color;
             tiles[x, y].Text = text;
-            MapChanged = true;
         }
     
         public void Paint(Texture color, int x, int y, Side side) {
             int wallX = x * 2 + 1 + side.GetX();
             int wallY = y * 2 + 1 + side.GetY();
             walls[wallX, wallY].Texture = color;
-            MapChanged = true;
         }
         public void PaintWall(Texture color, int wallX, int wallY, bool half = false, bool topLeft = false, float thickness = .3f) {
             walls[wallX, wallY].Texture = color;

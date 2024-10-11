@@ -13,6 +13,11 @@ public class MapGeneratorRenderer : Game
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
+    private RenderTarget2D _mapSprite;
+    private bool _needsRedraw = true;
+    private Vector2 _spritePosition;
+    private float _spriteScale = 1f;
+
     private RenderTarget2D _renderTarget;
     private bool _needsRerender = true;
     private Vector2 _lastCameraPosition;
@@ -74,6 +79,9 @@ public class MapGeneratorRenderer : Game
             map.Generate(seed);
         });
         mapGeneratorThread.Start();
+
+        _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * IsquareSize, map.y * IsquareSize);
+        _spritePosition = Vector2.Zero;
 
         _renderTarget = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
         _lastCameraPosition = new Vector2(cameraX, cameraY);
@@ -219,6 +227,15 @@ public class MapGeneratorRenderer : Game
             _lastWindowSize = new Point(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
         }
 
+        if (map.MapChanged)
+        {
+            _needsRedraw = true;
+            map.MapChanged = false;
+        }
+
+        _spritePosition = new Vector2(cameraX, cameraY);
+        _spriteScale = zoom;
+
         base.Update(gameTime);
     }
 
@@ -228,41 +245,37 @@ public class MapGeneratorRenderer : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        if (_needsRerender)
+        if (_needsRedraw)
         {
-            GraphicsDevice.SetRenderTarget(_renderTarget);
+            GraphicsDevice.SetRenderTarget(_mapSprite);
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
+
             Texture2D singlePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
-            singlePixelTexture.SetData(new[] { Color.White }); // white pixel
-            
-            _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null, Matrix.CreateScale(zoom) * Matrix.CreateTranslation(cameraX, cameraY, 0));
+            singlePixelTexture.SetData(new[] { Color.White });
 
-            // Calculate visible area
-            int startX = Math.Max(0, (int)(-cameraX / (squareSize * zoom)));
-            int startY = Math.Max(0, (int)(-cameraY / (squareSize * zoom)));
-            int endX = Math.Min(map.x, (int)((GraphicsDevice.Viewport.Width - cameraX) / (squareSize * zoom)) + 1);
-            int endY = Math.Min(map.y, (int)((GraphicsDevice.Viewport.Height - cameraY) / (squareSize * zoom)) + 1);
-
-            // Draw only visible tiles
-            for (int x = startX; x < endX; x++)
+            for (int x = 0; x < map.x; x++)
             {
-                for (int y = startY; y < endY; y++)
+                for (int y = 0; y < map.y; y++)
                 {
                     _spriteBatch.Draw(
                         singlePixelTexture,
-                        new Rectangle(x * squareSize, y * squareSize, squareSize, squareSize),
+                        new Rectangle(x * IsquareSize, y * IsquareSize, IsquareSize, IsquareSize),
                         fromSysColor(map.GetTile(x, y).Texture.Color));
                 }
             }
+
             _spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
-            _needsRerender = false;
+            _needsRedraw = false;
         }
 
+        GraphicsDevice.Clear(Color.Black);
+
         _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
-        _spriteBatch.Draw(_renderTarget, Vector2.Zero, Color.White);
+        _spriteBatch.Draw(_mapSprite, _spritePosition, null, Color.White, 0f, Vector2.Zero, _spriteScale, SpriteEffects.None, 0f);
         _spriteBatch.End();
 
         base.Draw(gameTime);
@@ -270,6 +283,7 @@ public class MapGeneratorRenderer : Game
 
     protected override void UnloadContent()
     {
+        _mapSprite?.Dispose();
         _renderTarget?.Dispose();
         base.UnloadContent();
     }
