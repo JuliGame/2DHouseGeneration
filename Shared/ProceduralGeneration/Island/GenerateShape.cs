@@ -6,9 +6,8 @@ namespace Shared.ProceduralGeneration.Island
 {
     public static class GenerateShape
     {
-        public static void GenerateIsland(Map map, int seed)
+        public static float[,] GenerateIsland(Map map, int seed)
         {
-            Random random = new Random(seed);
             PerlinNoise noise = new PerlinNoise(seed);
 
             int width = map.x;
@@ -20,6 +19,7 @@ namespace Shared.ProceduralGeneration.Island
             float persistence = 0.5f;
             float baseScale = 0.005f;
 
+            float[,] island = new float[width, height];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -41,27 +41,19 @@ namespace Shared.ProceduralGeneration.Island
                     // Normalize the noise value
                     noiseValue /= maxValue;
 
+
                     float distanceFromBorder = Math.Min(
                         Math.Min(x, width - 1 - x),
                         Math.Min(y, height - 1 - y)
                     ) / (float)Math.Min(width, height);
 
-                    float value = (noiseValue * 0.5f + 0.5f) * distanceFromBorder + distanceFromBorder * 0.5f;
 
-                    if (value > 0.1f)
-                    {
-                        // Land
-                        int shade = random.Next(100, 200);
-                        map.Paint(new Texture("Grass", System.Drawing.Color.FromArgb(0, shade, 0)), x, y);
-                    }
-                    else
-                    {
-                        // Ocean
-                        int shade = random.Next(50, 150);
-                        map.Paint(new Texture("Water", System.Drawing.Color.FromArgb(0, 0, shade)), x, y);
-                    }
+                    float value = (noiseValue * 0.5f + 0.5f) * distanceFromBorder + distanceFromBorder * 0.5f;            
+                    island[x, y] = value;
                 }
             }
+
+            return island;
         }
     }
 }
