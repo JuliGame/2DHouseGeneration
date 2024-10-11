@@ -191,37 +191,40 @@ public class MapGeneratorRenderer : Game
             mousePosition.X -= cameraX;
             mousePosition.Y -= cameraY;
             
-            int tileX = mousePosition.X / squareSize;
-            int tileY = mousePosition.Y / squareSize;
-            
-            if (tileX < 0 || tileX >= map.x || tileY < 0 || tileY >= map.y) {
-                return;
-            }
-            
-            bool isUp = mousePosition.Y % squareSize < wallMargin;
-            bool isDown = mousePosition.Y % squareSize > squareSize - wallMargin;
-            bool isLeft = mousePosition.X % squareSize < wallMargin;
-            bool isRight = mousePosition.X % squareSize > squareSize - wallMargin;
+            // Prevent division by zero
+            if (squareSize > 0)
+            {
+                int tileX = mousePosition.X / squareSize;
+                int tileY = mousePosition.Y / squareSize;
+                
+                if (tileX >= 0 && tileX < map.x && tileY >= 0 && tileY < map.y)
+                {
+                    bool isUp = mousePosition.Y % squareSize < wallMargin;
+                    bool isDown = mousePosition.Y % squareSize > squareSize - wallMargin;
+                    bool isLeft = mousePosition.X % squareSize < wallMargin;
+                    bool isRight = mousePosition.X % squareSize > squareSize - wallMargin;
 
-            if (isUp) {
-                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Top);
-                System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2 + 2));
-            }
-            else if (isDown) {
-                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Bottom);
-                System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2));
-            }
-            else if (isLeft) {
-                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Left);
-                System.Console.WriteLine("Clicked on wall " + (tileX * 2) + ";" + (tileY * 2 + 1));
-            }
-            else if (isRight) {
-                map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Bottom);
-                System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 2) + ";" + (tileY * 2));
-            }
-            else {
-                // map.Paint(System.Drawing.Color.Aqua, tileX, tileY);
-                System.Console.WriteLine("Clicked on tile " + tileX + ";" + tileY);
+                    if (isUp) {
+                        map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Top);
+                        System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2 + 2));
+                    }
+                    else if (isDown) {
+                        map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Bottom);
+                        System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 1) + ";" + (tileY * 2));
+                    }
+                    else if (isLeft) {
+                        map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Left);
+                        System.Console.WriteLine("Clicked on wall " + (tileX * 2) + ";" + (tileY * 2 + 1));
+                    }
+                    else if (isRight) {
+                        map.Paint(new Shared.ProceduralGeneration.Util.Texture("", System.Drawing.Color.Red), tileX, tileY,  Side.Bottom);
+                        System.Console.WriteLine("Clicked on wall " + (tileX * 2 + 2) + ";" + (tileY * 2));
+                    }
+                    else {
+                        // map.Paint(System.Drawing.Color.Aqua, tileX, tileY);
+                        System.Console.WriteLine("Clicked on tile " + tileX + ";" + tileY);
+                    }
+                }
             }
         }
 
