@@ -1,11 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
-using System.IO;
 
 namespace HouseGeneration.MapGeneratorRenderer;
 
@@ -81,7 +81,7 @@ public class MapGeneratorRenderer : Game
         });
         mapGeneratorThread.Start();
 
-        _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * squareSize, map.y * squareSize);
+        _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * IsquareSize, map.y * IsquareSize);
         _spritePosition = Vector2.Zero;
 
         _renderTarget = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
@@ -95,8 +95,6 @@ public class MapGeneratorRenderer : Game
     private bool pressR;
     private bool pressT;
     public bool pressK;
-    private bool _ctrlPressed = false;
-    private bool _shiftPressed = false;
     private int cameraX;
     private int cameraY;
     private float zoom = 1f;
@@ -146,21 +144,14 @@ public class MapGeneratorRenderer : Game
             }
         }
 
-        KeyboardState keyState = Keyboard.GetState();
-        _ctrlPressed = keyState.IsKeyDown(Keys.LeftControl) || keyState.IsKeyDown(Keys.RightControl);
-        _shiftPressed = keyState.IsKeyDown(Keys.LeftShift) || keyState.IsKeyDown(Keys.RightShift);
-
-        if (_ctrlPressed && keyState.IsKeyDown(Keys.C))
+        if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.C))
         {
-            if (_shiftPressed)
+            if (_mapSprite != null)
             {
-                CopyFullSpriteToPng();
-            }
-            else
-            {
-                CopyVisibleAreaToPng();
+                CopySpriteToPng(_mapSprite);
             }
         }
+
 
         float speed = 5;
         if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) {
@@ -248,7 +239,7 @@ public class MapGeneratorRenderer : Game
         if (map.MapChanged)
         {
             _needsRedraw = true;
-            
+            map.MapChanged = false;
         }
 
         _spritePosition = new Vector2(cameraX, cameraY);
@@ -279,7 +270,7 @@ public class MapGeneratorRenderer : Game
                 {
                     _spriteBatch.Draw(
                         singlePixelTexture,
-                        new Rectangle(x * squareSize, y * squareSize, squareSize, squareSize),
+                        new Rectangle(x * IsquareSize, y * IsquareSize, IsquareSize, IsquareSize),
                         fromSysColor(map.GetTile(x, y).Texture.Color));
                 }
             }
@@ -306,41 +297,38 @@ public class MapGeneratorRenderer : Game
         base.UnloadContent();
     }
 
-    private void CopyFullSpriteToPng()
+    private void CopySpriteToPng(RenderTarget2D sprite)
     {
-        using (MemoryStream stream = new MemoryStream())
+        // Create a new texture with dimensions equal to the map size
+        Texture2D simplifiedTexture = new Texture2D(GraphicsDevice, map.x, map.y);
+        Color[] colorData = new Color[map.x * map.y];
+
+        // Fill the color data array with tile colors
+        for (int y = 0; y < map.y; y++)
         {
-            _mapSprite.SaveAsPng(stream, _mapSprite.Width, _mapSprite.Height);
-            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(stream);
-            System.Windows.Forms.Clipboard.SetImage(bitmap);
-        }
-        Console.WriteLine("Full map copied to clipboard as PNG.");
-    }
-
-    private void CopyVisibleAreaToPng()
-    {
-        int visibleWidth = GraphicsDevice.Viewport.Width;
-        int visibleHeight = GraphicsDevice.Viewport.Height;
-
-        RenderTarget2D visibleArea = new RenderTarget2D(GraphicsDevice, visibleWidth, visibleHeight);
-
-        GraphicsDevice.SetRenderTarget(visibleArea);
-        GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Transparent);
-
-        _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
-        _spriteBatch.Draw(_mapSprite, _spritePosition, null, Microsoft.Xna.Framework.Color.White, 0f, Vector2.Zero, _spriteScale, SpriteEffects.None, 0f);
-        _spriteBatch.End();
-
-        GraphicsDevice.SetRenderTarget(null);
-
-        using (MemoryStream stream = new MemoryStream())
-        {
-            visibleArea.SaveAsPng(stream, visibleWidth, visibleHeight);
-            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(stream);
-            System.Windows.Forms.Clipboard.SetImage(bitmap);
+            for (int x = 0; x < map.x; x++)
+            {
+                colorData[y * map.x + x] = fromSysColor(map.GetTile(x, y).Texture.Color);
+            }
         }
 
-        visibleArea.Dispose();
-        Console.WriteLine("Visible area copied to clipboard as PNG.");
+        // Set the color data to the simplified texture
+        simplifiedTexture.SetData(colorData);
+
+        // Save the texture to a memory stream as PNG
+        using (MemoryStream stream = new MemoryStream())
+        {
+            simplifiedTexture.SaveAsPng(stream, map.x, map.y);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            // Copy the PNG data to the clipboard
+            Thread thread = new Thread(() => System.Windows.Forms.Clipboard.SetImage(System.Drawing.Image.FromStream(stream)));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+        }
+
+        // Dispose of the temporary texture
+        simplifiedTexture.Dispose();
     }
 }
