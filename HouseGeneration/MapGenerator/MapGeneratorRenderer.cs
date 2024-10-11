@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
+using System.IO;
 
 namespace HouseGeneration.MapGeneratorRenderer;
 
@@ -80,7 +81,7 @@ public class MapGeneratorRenderer : Game
         });
         mapGeneratorThread.Start();
 
-        _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * IsquareSize, map.y * IsquareSize);
+        _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * squareSize, map.y * squareSize);
         _spritePosition = Vector2.Zero;
 
         _renderTarget = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
@@ -94,6 +95,8 @@ public class MapGeneratorRenderer : Game
     private bool pressR;
     private bool pressT;
     public bool pressK;
+    private bool _ctrlPressed = false;
+    private bool _shiftPressed = false;
     private int cameraX;
     private int cameraY;
     private float zoom = 1f;
@@ -143,6 +146,21 @@ public class MapGeneratorRenderer : Game
             }
         }
 
+        KeyboardState keyState = Keyboard.GetState();
+        _ctrlPressed = keyState.IsKeyDown(Keys.LeftControl) || keyState.IsKeyDown(Keys.RightControl);
+        _shiftPressed = keyState.IsKeyDown(Keys.LeftShift) || keyState.IsKeyDown(Keys.RightShift);
+
+        if (_ctrlPressed && keyState.IsKeyDown(Keys.C))
+        {
+            if (_shiftPressed)
+            {
+                CopyFullSpriteToPng();
+            }
+            else
+            {
+                CopyVisibleAreaToPng();
+            }
+        }
 
         float speed = 5;
         if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) {
@@ -230,7 +248,7 @@ public class MapGeneratorRenderer : Game
         if (map.MapChanged)
         {
             _needsRedraw = true;
-            map.MapChanged = false;
+            
         }
 
         _spritePosition = new Vector2(cameraX, cameraY);
@@ -261,7 +279,7 @@ public class MapGeneratorRenderer : Game
                 {
                     _spriteBatch.Draw(
                         singlePixelTexture,
-                        new Rectangle(x * IsquareSize, y * IsquareSize, IsquareSize, IsquareSize),
+                        new Rectangle(x * squareSize, y * squareSize, squareSize, squareSize),
                         fromSysColor(map.GetTile(x, y).Texture.Color));
                 }
             }
@@ -286,5 +304,43 @@ public class MapGeneratorRenderer : Game
         _mapSprite?.Dispose();
         _renderTarget?.Dispose();
         base.UnloadContent();
+    }
+
+    private void CopyFullSpriteToPng()
+    {
+        using (MemoryStream stream = new MemoryStream())
+        {
+            _mapSprite.SaveAsPng(stream, _mapSprite.Width, _mapSprite.Height);
+            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(stream);
+            System.Windows.Forms.Clipboard.SetImage(bitmap);
+        }
+        Console.WriteLine("Full map copied to clipboard as PNG.");
+    }
+
+    private void CopyVisibleAreaToPng()
+    {
+        int visibleWidth = GraphicsDevice.Viewport.Width;
+        int visibleHeight = GraphicsDevice.Viewport.Height;
+
+        RenderTarget2D visibleArea = new RenderTarget2D(GraphicsDevice, visibleWidth, visibleHeight);
+
+        GraphicsDevice.SetRenderTarget(visibleArea);
+        GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Transparent);
+
+        _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
+        _spriteBatch.Draw(_mapSprite, _spritePosition, null, Microsoft.Xna.Framework.Color.White, 0f, Vector2.Zero, _spriteScale, SpriteEffects.None, 0f);
+        _spriteBatch.End();
+
+        GraphicsDevice.SetRenderTarget(null);
+
+        using (MemoryStream stream = new MemoryStream())
+        {
+            visibleArea.SaveAsPng(stream, visibleWidth, visibleHeight);
+            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(stream);
+            System.Windows.Forms.Clipboard.SetImage(bitmap);
+        }
+
+        visibleArea.Dispose();
+        Console.WriteLine("Visible area copied to clipboard as PNG.");
     }
 }
