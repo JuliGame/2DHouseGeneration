@@ -58,6 +58,34 @@ namespace Shared.ProceduralGeneration.Island
             }
         }
 
+        public static void DebugPaintFloatMaskRGB(Map map, float[,] maskR, float[,] maskG, float[,] maskB)
+        {
+            int width = maskR.GetLength(0);
+            int height = maskR.GetLength(1);
+
+            // Ensure all masks have the same dimensions
+            if (width != maskG.GetLength(0) || width != maskB.GetLength(0) ||
+                height != maskG.GetLength(1) || height != maskB.GetLength(1))
+            {
+                throw new ArgumentException("All masks must have the same dimensions");
+            }
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    // Convert float values [0, 1] to byte values [0, 255]
+                    byte r = (byte)Math.Max(0, Math.Min(255, (int)(maskR[x, y] * 255)));
+                    byte g = (byte)Math.Max(0, Math.Min(255, (int)(maskG[x, y] * 255)));
+                    byte b = (byte)Math.Max(0, Math.Min(255, (int)(maskB[x, y] * 255)));
+
+                    Color color = Color.FromArgb(r, g, b);
+                    Texture debugColor = new Texture("DebugRGB", color);
+                    map.Paint(debugColor, x, y);
+                }
+            }
+        }
+
         private static T ReverseMaskValue<T>(T value) {
             if (typeof(T) == typeof(bool))
             {
@@ -110,6 +138,27 @@ namespace Shared.ProceduralGeneration.Island
                 for (int y = 0; y < height; y++)
                 {
                     result[x, y] = mask[x, y] > threshold;
+                }
+            }
+
+            return result;
+        }
+
+        public static float[,] GetHigherThanFloat(float[,] mask, float threshold, bool higherThan = true)
+        {
+            int width = mask.GetLength(0);
+            int height = mask.GetLength(1);
+            float[,] result = new float[width, height];
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (higherThan) {
+                        result[x, y] = mask[x, y] > threshold ?  mask[x, y] : 0f;
+                    } else {
+                        result[x, y] = mask[x, y] < threshold ?  mask[x, y] : 1f;
+                    }
                 }
             }
 
@@ -290,6 +339,23 @@ namespace Shared.ProceduralGeneration.Island
             return resultMask;
         }
 
+        public static float[,] Add(float[,] mask1, float Number)
+        {
+            int width = mask1.GetLength(0);
+            int height = mask1.GetLength(1);
+            float[,] resultMask = new float[width, height];
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    resultMask[x, y] = mask1[x, y] + Number;
+                }
+            }
+
+            return resultMask;
+        }
+
         public static float[,] AddMasks(float[,] mask1, float[,] mask2)
         {
             int width = mask1.GetLength(0);
@@ -318,6 +384,23 @@ namespace Shared.ProceduralGeneration.Island
                 for (int y = 0; y < height; y++)
                 {
                     resultMask[x, y] = mask[x, y] * value;
+                }
+            }
+
+            return resultMask;
+        }
+
+        public static float[,] Multiply(float[,] mask, float[,] mask2)
+        {
+            int width = mask.GetLength(0);
+            int height = mask.GetLength(1);
+            float[,] resultMask = new float[width, height];
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    resultMask[x, y] = mask[x, y] * mask2[x, y];
                 }
             }
 

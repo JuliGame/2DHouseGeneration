@@ -55,9 +55,12 @@ namespace Shared.ProceduralGeneration
             GenerateEmpty(seed);
             Console.WriteLine("Generating map");
 
-            float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
-            bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
+            GenerateBiomes.SetupDict();
 
+            float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
+            // MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
+
+            bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
 
             // MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));            
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
@@ -66,20 +69,28 @@ namespace Shared.ProceduralGeneration
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
             // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
 
-            float[,] humidityMap = GetWeather.GetHumidity(this, waterMask, islandHeightMap, riverMask, seed);
+            float[,] convolutedSeaMap = GetWeather.Convolution(waterMask, 200);
+            //MaskUtils.DebugPaintFloatMask(this, convolutedSeaMap);
+
+            float[,] humidityMap = GetWeather.GetHumidity(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
             // MaskUtils.DebugPaintFloatMask(this, humidityMap);
-
             
-            float[,] temperatureMap = GetWeather.GetTemperature(this, waterMask, islandHeightMap, riverMask, seed);
-            // MaskUtils.DebugPaintFloatMask(this, temperatureMap);
+            float[,] temperatureMap = GetWeather.GetTemperature(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
+            //MaskUtils.DebugPaintFloatMask(this, temperatureMap);
 
-            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap);
+            // MaskUtils.DebugPaintFloatMaskRGB(this, temperatureMap, islandHeightMap, humidityMap);
+
+            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, convolutedSeaMap);
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) {
                     Biome biome = biomeMap[i, j];
+                    // Color currentColor = tiles[i, j].Texture.Color;
+                    // Color newColor = Color.FromArgb((currentColor.R + GenerateBiomes.BiomeConfigurations[biome].Color.R) / 2, (currentColor.G + GenerateBiomes.BiomeConfigurations[biome].Color.G) / 2, (currentColor.B + GenerateBiomes.BiomeConfigurations[biome].Color.B) / 2);
+                    // Paint(new Texture(biome.ToString(), newColor), i, j);
                     Paint(new Texture(biome.ToString(), GenerateBiomes.BiomeConfigurations[biome].Color), i, j);
                 }
             }
+
 
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
 

@@ -1,15 +1,12 @@
 using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using Shared.ProceduralGeneration.Util;
-
 namespace Shared.ProceduralGeneration.Island
 {
     public static class GenerateRivers
     {
-        private static Random random = null;
         public static bool[,] Generate(Map map, bool[,] waterMask, float[,] mergedHeightMap, int seed, int riverCount = 5) {
-            random = new Random(seed);
+            comeBack = 0;
+            
+            Random random = new Random(seed);
             bool[,] riverMask = new bool[map.x, map.y];
 
             for (int i = 0; i < riverCount; i++)
@@ -109,7 +106,7 @@ namespace Shared.ProceduralGeneration.Island
             int visitedCount = 0;
             while (startPoint.x >= 0 && startPoint.x < width && startPoint.y >= 0 && startPoint.y < height && !waterMask[(int) startPoint.x, (int) startPoint.y])
             {
-                (direction.x, direction.y) = RotateVector(direction.x, direction.y, startPoint.x, startPoint.y, mergedHeightMap);
+                (direction.x, direction.y) = RotateVector(direction.x, direction.y, startPoint.x, startPoint.y, mergedHeightMap, random);
 
                 // ModifyHeightMap(mergedHeightMap, (int) (startPoint.x - direction.x), (int) (startPoint.y - direction.y), 3, 0f);
 
@@ -136,7 +133,7 @@ namespace Shared.ProceduralGeneration.Island
         }
 
         private static float comeBack = 0;
-        private static (float x, float y) RotateVector(float vx, float vy, float px, float py, float[,] mergedHeightMap) {
+        private static (float x, float y) RotateVector(float vx, float vy, float px, float py, float[,] mergedHeightMap, Random random) {
             // Calculate the angle of the gradient
             float currentAngle = (float)Math.Atan2(vy, vx);
             float gradientAngle = 0;
@@ -170,7 +167,7 @@ namespace Shared.ProceduralGeneration.Island
                     comeBack = 0;
                 }
             } else if (random.Next(0, 100) < 20) {
-                randomAngle = (random.Next(-100, 100)) * 0.005f;
+                randomAngle = random.Next(-100, 100) * 0.005f;
                 comeBack = -randomAngle;
             }
 

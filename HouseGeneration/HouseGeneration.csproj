@@ -21,6 +21,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Accord.Math" Version="3.8.2-alpha" />
+        <PackageReference Include="ILGPU" Version="1.5.1" />
         <PackageReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.2" />
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />

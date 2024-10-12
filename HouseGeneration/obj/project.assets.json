@@ -40,6 +40,19 @@
           }
         }
       },
+      "ILGPU/1.5.1": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/ILGPU.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/ILGPU.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "ImGui.NET/1.90.1.1": {
         "type": "package",
         "dependencies": {
@@ -677,6 +690,7 @@
         "type": "project",
         "framework": ".NETStandard,Version=v2.0",
         "dependencies": {
+          "ILGPU": "1.5.1",
           "Newtonsoft.Json": "13.0.3"
         },
         "compile": {
@@ -777,6 +791,30 @@
         "lib/netstandard2.0/Accord.Math.Core.xml",
         "lib/netstandard2.0/Accord.Math.dll",
         "lib/netstandard2.0/Accord.Math.xml"
+      ]
+    },
+    "ILGPU/1.5.1": {
+      "sha512": "Q4URSxEqH+u0XE3XCtYZ2h3FZgLp9VOOeelvKCmniiTlKft0JNCs13EOqayWVjwvPUbD4w/XaFlP3CdmaRdj8w==",
+      "type": "package",
+      "path": "ilgpu/1.5.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE-3RD-PARTY.txt",
+        "LICENSE.txt",
+        "ilgpu.1.5.1.nupkg.sha512",
+        "ilgpu.nuspec",
+        "lib/net471/ILGPU.dll",
+        "lib/net471/ILGPU.pdb",
+        "lib/net471/ILGPU.xml",
+        "lib/net5.0/ILGPU.dll",
+        "lib/net5.0/ILGPU.xml",
+        "lib/net6.0/ILGPU.dll",
+        "lib/net6.0/ILGPU.xml",
+        "lib/net7.0/ILGPU.dll",
+        "lib/net7.0/ILGPU.xml",
+        "lib/netstandard2.1/ILGPU.dll",
+        "lib/netstandard2.1/ILGPU.xml"
       ]
     },
     "ImGui.NET/1.90.1.1": {
@@ -1471,6 +1509,7 @@
   "projectFileDependencyGroups": {
     "net8.0-windows7.0": [
       "Accord.Math >= 3.8.2-alpha",
+      "ILGPU >= 1.5.1",
       "Microsoft.DotNet.Watcher.Tools >= 2.0.2",
       "MonoGame.Content.Builder.Task >= 3.8.1.303",
       "MonoGame.Framework.DesktopGL >= 3.8.1.303",
@@ -1534,6 +1573,10 @@
           "Accord.Math": {
             "target": "Package",
             "version": "[3.8.2-alpha, )"
+          },
+          "ILGPU": {
+            "target": "Package",
+            "version": "[1.5.1, )"
           },
           "Microsoft.DotNet.Watcher.Tools": {
             "target": "Package",

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
+using System.Linq;
 
 namespace HouseGeneration.MapGeneratorRenderer;
 
@@ -30,6 +31,13 @@ public class MapGeneratorRenderer : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         Window.ClientSizeChanged += OnWindowSizeChanged;
+
+        // Remove these lines from here
+        // _graphics.HardwareModeSwitch = false;
+        // _graphics.IsFullScreen = false;
+        // _graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        // _graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+        // Window.IsBorderless = true;
     }
 
     private void OnWindowSizeChanged(object sender, EventArgs e)
@@ -49,8 +57,45 @@ public class MapGeneratorRenderer : Game
         Window.AllowUserResizing = true;
         
         base.Initialize();
+
+        // Move the window setup here
+        SetWindowOnSecondMonitor();
     }
-    
+
+    private void SetWindowOnSecondMonitor()
+    {
+        // Get all screen bounds
+        var screens = System.Windows.Forms.Screen.AllScreens;
+
+        // Debug information
+        Console.WriteLine($"Number of screens: {screens.Length}");
+        for (int i = 0; i < screens.Length; i++)
+        {
+            Console.WriteLine($"Screen {i}: Bounds = {screens[i].Bounds}, Primary = {screens[i].Primary}");
+        }
+
+        // Find the first non-primary screen
+        var secondScreen = screens.FirstOrDefault(s => !s.Primary);
+
+        if (secondScreen != null)
+        {
+            Console.WriteLine($"Setting window to second screen: {secondScreen.Bounds}");
+
+            // Set window properties
+            Window.IsBorderless = true;
+            _graphics.PreferredBackBufferWidth = secondScreen.Bounds.Width;
+            _graphics.PreferredBackBufferHeight = secondScreen.Bounds.Height;
+            _graphics.ApplyChanges();
+
+            // Position the window on the second screen
+            Window.Position = new Point(secondScreen.Bounds.X, secondScreen.Bounds.Y);
+        }
+        else
+        {
+            Console.WriteLine("No second screen found. Using primary screen.");
+        }
+    }
+
     int IsquareSize;
     int IwallMargin;
     int IwallWidth;
@@ -99,6 +144,7 @@ public class MapGeneratorRenderer : Game
     private int cameraX;
     private int cameraY;
     private float zoom = 1f;
+    private float start_zoom = .035f;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
@@ -162,7 +208,7 @@ public class MapGeneratorRenderer : Game
         }
         
 
-        zoom = Mouse.GetState().ScrollWheelValue / 10000f + 1;
+        zoom = Mouse.GetState().ScrollWheelValue / 10000f + start_zoom;
 
         
         squareSize = (int)(IsquareSize * zoom);

@@ -13,6 +13,7 @@
       <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="ILGPU" Version="1.5.1" />
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303">
             <PrivateAssets>All</PrivateAssets>
         </PackageReference>
