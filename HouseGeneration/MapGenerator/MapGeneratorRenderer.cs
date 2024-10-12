@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace HouseGeneration.MapGeneratorRenderer;
 
@@ -24,6 +25,9 @@ public class MapGeneratorRenderer : Game
     private bool _needsRerender = true;
     private Vector2 _lastCameraPosition;
     private Point _lastWindowSize;
+
+    private const int ChunkSize = 1024; // or 2048, depending on your hardware limits
+    private Dictionary<Point, RenderTarget2D> _mapChunks;
 
     public MapGeneratorRenderer()
     {
@@ -109,7 +113,7 @@ public class MapGeneratorRenderer : Game
     protected override void LoadContent() {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        IsquareSize = 30;
+        IsquareSize = 1;
         IwallWidth = 8;
         IwallMargin = IwallWidth + 1;
         
@@ -118,8 +122,8 @@ public class MapGeneratorRenderer : Game
         wallMargin = IwallMargin;
         
         
-        // map = new Map(3000, 3000); // huge 6gb of ram
-        map = new Map(1000, 1000); // nice, 1gb
+        map = new Map(3000, 3000); // huge 6gb of ram
+        // map = new Map(1000, 1000); // nice, 1gb
         // map = new Map(100, 100); // ok, 0.2gb
 
         Thread mapGeneratorThread = new Thread(() => {
@@ -127,8 +131,21 @@ public class MapGeneratorRenderer : Game
         });
         mapGeneratorThread.Start();
 
-        _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * IsquareSize, map.y * IsquareSize);
-        _spritePosition = Vector2.Zero;
+        _mapChunks = new Dictionary<Point, RenderTarget2D>();
+        
+        // Remove the single _mapSprite creation
+        // _mapSprite = new RenderTarget2D(GraphicsDevice, map.x * IsquareSize, map.y * IsquareSize);
+
+        // Instead, create chunks
+        for (int x = 0; x < map.x * IsquareSize; x += ChunkSize)
+        {
+            for (int y = 0; y < map.y * IsquareSize; y += ChunkSize)
+            {
+                int width = Math.Min(ChunkSize, map.x * IsquareSize - x);
+                int height = Math.Min(ChunkSize, map.y * IsquareSize - y);
+                _mapChunks[new Point(x, y)] = new RenderTarget2D(GraphicsDevice, width, height);
+            }
+        }
 
         _renderTarget = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
         _lastCameraPosition = new Vector2(cameraX, cameraY);
@@ -144,7 +161,7 @@ public class MapGeneratorRenderer : Game
     private int cameraX;
     private int cameraY;
     private float zoom = 1f;
-    private float start_zoom = .035f;
+    private float start_zoom = 1f;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
@@ -193,10 +210,7 @@ public class MapGeneratorRenderer : Game
 
         if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.C))
         {
-            if (_mapSprite != null)
-            {
-                CopySpriteToPng(_mapSprite);
-            }
+            CopySpriteToPng();    
         }
 
 
@@ -306,26 +320,34 @@ public class MapGeneratorRenderer : Game
     {
         if (_needsRedraw)
         {
-            GraphicsDevice.SetRenderTarget(_mapSprite);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
-
-            Texture2D singlePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
-            singlePixelTexture.SetData(new[] { Color.White });
-
-            for (int x = 0; x < map.x; x++)
+            foreach (var chunk in _mapChunks)
             {
-                for (int y = 0; y < map.y; y++)
-                {
-                    _spriteBatch.Draw(
-                        singlePixelTexture,
-                        new Rectangle(x * IsquareSize, y * IsquareSize, IsquareSize, IsquareSize),
-                        fromSysColor(map.GetTile(x, y).Texture.Color));
-                }
-            }
+                GraphicsDevice.SetRenderTarget(chunk.Value);
+                GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _spriteBatch.End();
+                _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
+
+                Texture2D singlePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+                singlePixelTexture.SetData(new[] { Color.White });
+
+                int startX = chunk.Key.X / IsquareSize;
+                int startY = chunk.Key.Y / IsquareSize;
+                int endX = Math.Min(startX + ChunkSize / IsquareSize, map.x);
+                int endY = Math.Min(startY + ChunkSize / IsquareSize, map.y);
+
+                for (int x = startX; x < endX; x++)
+                {
+                    for (int y = startY; y < endY; y++)
+                    {
+                        _spriteBatch.Draw(
+                            singlePixelTexture,
+                            new Rectangle((x - startX) * IsquareSize, (y - startY) * IsquareSize, IsquareSize, IsquareSize),
+                            fromSysColor(map.TextureTypes[map.GetTile(x, y).TextureIndex].Color));
+                    }
+                }
+
+                _spriteBatch.End();
+            }
 
             GraphicsDevice.SetRenderTarget(null);
             _needsRedraw = false;
@@ -333,8 +355,16 @@ public class MapGeneratorRenderer : Game
 
         GraphicsDevice.Clear(Color.Black);
 
-        _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp);
-        _spriteBatch.Draw(_mapSprite, _spritePosition, null, Color.White, 0f, Vector2.Zero, _spriteScale, SpriteEffects.None, 0f);
+        _spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null, null, Matrix.CreateScale(zoom));
+        
+        Vector2 screenCenter = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
+        Vector2 zoomedSpritePosition = screenCenter - (screenCenter - _spritePosition) * zoom;
+
+        foreach (var chunk in _mapChunks)
+        {
+            Vector2 chunkPosition = new Vector2(chunk.Key.X, chunk.Key.Y) + zoomedSpritePosition;
+            _spriteBatch.Draw(chunk.Value, chunkPosition, null, Color.White);
+        }
         _spriteBatch.End();
 
         base.Draw(gameTime);
@@ -342,12 +372,17 @@ public class MapGeneratorRenderer : Game
 
     protected override void UnloadContent()
     {
-        _mapSprite?.Dispose();
+        foreach (var chunk in _mapChunks.Values)
+        {
+            chunk.Dispose();
+        }
+        _mapChunks.Clear();
+        // Remove: _mapSprite?.Dispose();
         _renderTarget?.Dispose();
         base.UnloadContent();
     }
 
-    private void CopySpriteToPng(RenderTarget2D sprite)
+    private void CopySpriteToPng()
     {
         // Create a new texture with dimensions equal to the map size
         Texture2D simplifiedTexture = new Texture2D(GraphicsDevice, map.x, map.y);
@@ -358,7 +393,9 @@ public class MapGeneratorRenderer : Game
         {
             for (int x = 0; x < map.x; x++)
             {
-                colorData[y * map.x + x] = fromSysColor(map.GetTile(x, y).Texture.Color);
+                Tile tile = map.GetTile(x, y);
+                // Only copy the main texture, ignoring walls
+                colorData[y * map.x + x] = fromSysColor(map.TextureTypes[tile.TextureIndex].Color);
             }
         }
 

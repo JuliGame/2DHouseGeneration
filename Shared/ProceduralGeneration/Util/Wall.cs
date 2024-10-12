@@ -1,20 +1,17 @@
-using System.Drawing;
-
 namespace Shared.ProceduralGeneration.Util
 {
-
-
     public class Wall
     {
-        public Texture Texture;
-
-        public Wall(Texture texture)
-        {
-            Texture = texture;
-        }
-
+        public int TextureIndex;
         public bool isHalf;
         public bool isTopOrLeft;
-        public float Thickness = 1;
+        public float Thickness;
+
+        public Wall(int textureIndex) {
+            TextureIndex = textureIndex;
+            isHalf = false;
+            isTopOrLeft = false;
+            Thickness = .3f;
+        }
     }
 }

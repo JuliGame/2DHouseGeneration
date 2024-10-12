@@ -212,7 +212,7 @@ public class HouseGeneratorRenderer : Game
                 _spriteBatch.Draw(
                     singlePixelTexture,
                     new Rectangle(x * squareSize + cameraX, y * squareSize + cameraY, squareSize, squareSize),
-                    fromSysColor(map.GetTile(x, y).Texture.Color));
+                    fromSysColor(map.TextureTypes[map.GetTile(x, y).TextureIndex].Color));
             }
         }
 
@@ -224,7 +224,7 @@ public class HouseGeneratorRenderer : Game
                 int y = iy / 2;
                 
                 Wall wall = map.GetWall(ix, iy);
-                Color color =  fromSysColor(wall.Texture.Color);
+                Color color =  fromSysColor(map.TextureTypes[wall.TextureIndex].Color);
                 if (ix % 2 == 1) {
                     if (iy % 2 == 1) {
                         SpriteFont font = Content.Load<SpriteFont>("Arial");

@@ -1,8 +1,10 @@
 using System;
 using System.Drawing;
+using System.Collections.Generic;
 using Shared.ProceduralGeneration.Island;
 using Shared.ProceduralGeneration.Util;
 using static Shared.ProceduralGeneration.Island.GenerateBiomes;
+using System.Threading;
 
 namespace Shared.ProceduralGeneration
 {
@@ -12,14 +14,19 @@ namespace Shared.ProceduralGeneration
         public readonly int y;
         public bool MapChanged = false;
 
-        Tile [,] tiles;
-        Wall[,] walls;
+        private int[,] tileIndices;
+        public List<Tile> TileTypes;
+        public List<Texture> TextureTypes;
+        public Wall[,] Walls;
+
         public Map(int x, int y) {
             this.x = x;
             this.y = y;
         
-            tiles = new Tile[x, y];
-            walls = new Wall[x*2+1, y*2+1];
+            tileIndices = new int[x, y];
+            TileTypes = new List<Tile>();
+            TextureTypes = new List<Texture>();
+            Walls = new Wall[x*2+1, y*2+1];
         
             GenerateEmpty(0);
         }
@@ -28,17 +35,36 @@ namespace Shared.ProceduralGeneration
             Random random = new Random(seed);
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) { 
-                    int shade = random.Next(50, 150);
-                    Color randomGreen = Color.FromArgb(0, shade, 0);
-                    tiles[i, j] = new Tile(new Texture("Grass", randomGreen));
+                    Color randomGreen = Color.FromArgb(0, 100, 0);
+                    int textureIndex = AddOrGetTextureType(new Texture("Void", randomGreen));
+                    int tileIndex = AddOrGetTileType(new Tile(textureIndex));
+                    tileIndices[i, j] = tileIndex;
                 }
             }
-        
-            for (int i = 0; i < x*2+1; i++) {
-                for (int j = 0; j < y*2+1; j++) { 
-                    walls[i, j] = new Wall(new Texture("Empty", Color.FromArgb(0, 0,0,0)));
+        }
+
+        private int AddOrGetTextureType(Texture texture) {
+            int index = TextureTypes.FindIndex(t => t.Equals(texture));
+            if (index == -1) {
+                if (TextureTypes.Count == 25500) {
+                    throw new InvalidOperationException("Maximum number of texture types (255) reached.");
                 }
+                TextureTypes.Add(texture);
+                return (TextureTypes.Count - 1);
             }
+            return index;
+        }
+
+        private int AddOrGetTileType(Tile tile) {
+            int index = TileTypes.FindIndex(t => t.TextureIndex == tile.TextureIndex && t.Text == tile.Text);
+            if (index == -1) {
+                if (TileTypes.Count == 25500) {
+                    throw new InvalidOperationException("Maximum number of tile types (255) reached.");
+                }
+                TileTypes.Add(tile);
+                return (TileTypes.Count - 1);
+            }
+            return index;
         }
 
         public void GenerateHouse(int seed) {
@@ -53,32 +79,43 @@ namespace Shared.ProceduralGeneration
 
         public void Generate(int seed) {
             GenerateEmpty(seed);
+            MapChanged = true;
             Console.WriteLine("Generating map");
-
             GenerateBiomes.SetupDict();
 
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
-            // MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
+            MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
+            MapChanged = true;
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
+            MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));       
 
-            // MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));            
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
             
             int riverAmmount = (int) (getM2() / 1000000) * 3;
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
-            // MaskUtils.PaintMask(this, landMask, null, new Texture("Water", Color.FromArgb(0, 0, 150)));
+            MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
+            MapChanged = true;
+            Thread.Sleep(1000);
 
             float[,] convolutedSeaMap = GetWeather.Convolution(waterMask, 200);
-            //MaskUtils.DebugPaintFloatMask(this, convolutedSeaMap);
+            MaskUtils.DebugPaintFloatMask(this, convolutedSeaMap);
+            MapChanged = true;
+            Thread.Sleep(1000);
 
             float[,] humidityMap = GetWeather.GetHumidity(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
-            // MaskUtils.DebugPaintFloatMask(this, humidityMap);
+            MaskUtils.DebugPaintFloatMask(this, humidityMap);
+            MapChanged = true;
+            Thread.Sleep(1000);
             
             float[,] temperatureMap = GetWeather.GetTemperature(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
-            //MaskUtils.DebugPaintFloatMask(this, temperatureMap);
+            MaskUtils.DebugPaintFloatMask(this, temperatureMap);
+            MapChanged = true;
+            Thread.Sleep(1000);
 
             // MaskUtils.DebugPaintFloatMaskRGB(this, temperatureMap, islandHeightMap, humidityMap);
+            // MapChanged = true;
+            // Thread.Sleep(1000);
 
             Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, convolutedSeaMap);
             for (int i = 0; i < x; i++) {
@@ -93,36 +130,39 @@ namespace Shared.ProceduralGeneration
 
 
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
-
             MapChanged = true;
         }
 
-
-        public void Paint(Texture color, int x, int y, string text = null) {
+        public void Paint(Texture texture, int x, int y, string text = null) {
             if (x < 0 || x >= this.x || y < 0 || y >= this.y) return;
         
-            tiles[x, y].Texture = color;
-            tiles[x, y].Text = text;
+            int textureIndex = AddOrGetTextureType(texture);
+            int tileIndex = AddOrGetTileType(new Tile(textureIndex) { Text = text });
+            tileIndices[x, y] = tileIndex;
         }
-    
-        public void Paint(Texture color, int x, int y, Side side) {
+
+        public void Paint(Texture texture, int x, int y, Side side) {
             int wallX = x * 2 + 1 + side.GetX();
             int wallY = y * 2 + 1 + side.GetY();
-            walls[wallX, wallY].Texture = color;
+            int textureIndex = AddOrGetTextureType(texture);
+            Walls[wallX, wallY].TextureIndex = textureIndex;
         }
-        public void PaintWall(Texture color, int wallX, int wallY, bool half = false, bool topLeft = false, float thickness = .3f) {
-            walls[wallX, wallY].Texture = color;
-            walls[wallX, wallY].isHalf = half;
-            walls[wallX, wallY].isTopOrLeft = topLeft;
-            walls[wallX, wallY].Thickness = thickness;
+
+        public void PaintWall(Texture texture, int wallX, int wallY, bool half = false, bool topLeft = false, float thickness = .3f) {
+            int textureIndex = AddOrGetTextureType(texture);
+            Walls[wallX, wallY].TextureIndex = textureIndex;
+            Walls[wallX, wallY].isHalf = half;
+            Walls[wallX, wallY].isTopOrLeft = topLeft;
+            Walls[wallX, wallY].Thickness = thickness;
         }
-    
+
         public Tile GetTile(int x, int y) {
-            return tiles[x, y];
+            return TileTypes[tileIndices[x, y]];
         }
-    
+
         public Wall GetWall(int x, int y) {
-            return walls[x, y];
+            return Walls[x, y];
         }
     }
 }
+
