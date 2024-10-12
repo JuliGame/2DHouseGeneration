@@ -8,6 +8,8 @@ using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
 using System.Linq;
 using System.Collections.Generic;
+using ImGuiNET;
+using MonoGame.ImGuiNet;
 
 namespace HouseGeneration.MapGeneratorRenderer;
 
@@ -28,6 +30,9 @@ public class MapGeneratorRenderer : Game
 
     private const int ChunkSize = 1024; // or 2048, depending on your hardware limits
     private Dictionary<Point, RenderTarget2D> _mapChunks;
+
+    private ImGuiRenderer _imGuiRenderer;
+    private List<string> _consoleMessages = new List<string>();
 
     public MapGeneratorRenderer()
     {
@@ -57,10 +62,12 @@ public class MapGeneratorRenderer : Game
 
     protected override void Initialize()
     {
+        _imGuiRenderer = new ImGuiRenderer(this);
         // TODO: Add your initialization logic here
         Window.AllowUserResizing = true;
         
         base.Initialize();
+
 
         // Move the window setup here
         SetWindowOnSecondMonitor();
@@ -72,10 +79,10 @@ public class MapGeneratorRenderer : Game
         var screens = System.Windows.Forms.Screen.AllScreens;
 
         // Debug information
-        Console.WriteLine($"Number of screens: {screens.Length}");
+        AddConsoleMessage($"Number of screens: {screens.Length}");
         for (int i = 0; i < screens.Length; i++)
         {
-            Console.WriteLine($"Screen {i}: Bounds = {screens[i].Bounds}, Primary = {screens[i].Primary}");
+            AddConsoleMessage($"Screen {i}: Bounds = {screens[i].Bounds}, Primary = {screens[i].Primary}");
         }
 
         // Find the first non-primary screen
@@ -83,7 +90,7 @@ public class MapGeneratorRenderer : Game
 
         if (secondScreen != null)
         {
-            Console.WriteLine($"Setting window to second screen: {secondScreen.Bounds}");
+            AddConsoleMessage($"Setting window to second screen: {secondScreen.Bounds}");
 
             // Set window properties
             Window.IsBorderless = true;
@@ -96,7 +103,7 @@ public class MapGeneratorRenderer : Game
         }
         else
         {
-            Console.WriteLine("No second screen found. Using primary screen.");
+            AddConsoleMessage("No second screen found. Using primary screen.");
         }
     }
 
@@ -127,7 +134,7 @@ public class MapGeneratorRenderer : Game
         // map = new Map(100, 100); // ok, 0.2gb
 
         Thread mapGeneratorThread = new Thread(() => {
-            map.Generate(seed);
+            map.Generate(seed, Debug);
         });
         mapGeneratorThread.Start();
 
@@ -152,6 +159,8 @@ public class MapGeneratorRenderer : Game
         _lastWindowSize = new Point(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
         // TODO: use this.Content to load your game content here
+
+        _imGuiRenderer.RebuildFontAtlas();
     }
     
     Tile selectedTile;
@@ -172,7 +181,7 @@ public class MapGeneratorRenderer : Game
         if (Keyboard.GetState().IsKeyDown(Keys.R)) {
             if (!pressR) {
                 if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
-                    mapGeneratorThread = new Thread(() => { map.Generate(seed); });
+                    mapGeneratorThread = new Thread(() => { map.Generate(seed, Debug); });
                     mapGeneratorThread.Start();
                 }
             }
@@ -184,7 +193,7 @@ public class MapGeneratorRenderer : Game
             if (!pressT) {
                 if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
                     seed++;
-                    mapGeneratorThread = new Thread(() => { map.Generate(seed); });
+                    mapGeneratorThread = new Thread(() => { map.Generate(seed, Debug); });
                     mapGeneratorThread.Start();
                 }
             }
@@ -203,7 +212,7 @@ public class MapGeneratorRenderer : Game
         if (Keyboard.GetState().IsKeyDown(Keys.Space)) {
             if (mapGeneratorThread == null || !mapGeneratorThread.IsAlive) {
                 seed++;
-                mapGeneratorThread = new Thread(() => { map.Generate(seed); });
+                mapGeneratorThread = new Thread(() => { map.Generate(seed, Debug); });
                 mapGeneratorThread.Start();
             }
         }
@@ -309,7 +318,30 @@ public class MapGeneratorRenderer : Game
         _spritePosition = new Vector2(cameraX, cameraY);
         _spriteScale = zoom;
 
+        _imGuiRenderer.BeginLayout(gameTime);
+        DrawImGuiContent();
+        _imGuiRenderer.EndLayout();
+
         base.Update(gameTime);
+    }
+
+    private void DrawImGuiContent()
+    {
+        ImGui.Begin("Console");
+
+        if (ImGui.Button("Clear Console"))
+        {
+            _consoleMessages.Clear();
+        }
+
+        ImGui.BeginChild("ScrollingRegion", new System.Numerics.Vector2(0, -ImGui.GetFrameHeightWithSpacing()), ImGuiNET.ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar);
+        foreach (var message in _consoleMessages)
+        {
+            ImGui.TextWrapped(message);
+        }
+        ImGui.EndChild();
+
+        ImGui.End();
     }
 
     public Color fromSysColor(System.Drawing.Color color) {
@@ -367,6 +399,10 @@ public class MapGeneratorRenderer : Game
         }
         _spriteBatch.End();
 
+        _spriteBatch.Begin();
+        _imGuiRenderer.EndLayout();
+        _spriteBatch.End();
+
         base.Draw(gameTime);
     }
 
@@ -417,5 +453,38 @@ public class MapGeneratorRenderer : Game
 
         // Dispose of the temporary texture
         simplifiedTexture.Dispose();
+    }
+
+    // Modify the existing methods that use Console.WriteLine to use this method instead
+    private void AddConsoleMessage(string message)
+    {
+        _consoleMessages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+        if (_consoleMessages.Count > 100) // Limit the number of messages to prevent excessive memory usage
+        {
+            _consoleMessages.RemoveAt(0);
+        }
+    }
+
+    private long startTime = 0;
+    public void Debug(string name) {
+        if (startTime == 0) {
+            startTime = DateTime.Now.Ticks;
+        } else {
+            long currentTime = DateTime.Now.Ticks;
+            if (currentTime - startTime > 10000000) {
+                AddConsoleMessage(name + " was executed in " + (currentTime - startTime) / 10000000f + " seconds");
+                startTime = currentTime;
+            }
+            Console.Out.Flush();
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && _imGuiRenderer != null)
+        {
+            // _imGuiRenderer.Dispose();
+        }
+        base.Dispose(disposing);
     }
 }

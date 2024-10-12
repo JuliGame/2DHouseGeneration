@@ -77,59 +77,63 @@ namespace Shared.ProceduralGeneration
             return x * y;
         }
 
-        public void Generate(int seed) {
+        public void Generate(int seed, Action<string> Debug) {
+            Debug("start");
+
             GenerateEmpty(seed);
-            MapChanged = true;
-            Console.WriteLine("Generating map");
+            Debug("empty");
+
             GenerateBiomes.SetupDict();
 
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
-            MaskUtils.DebugPaintFloatMask(this, islandHeightMap);
-            MapChanged = true;
+            Debug("GenerateIsland");
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
-            MaskUtils.PaintMask(this, landMask, new Texture("Grass", Color.FromArgb(0, 150, 0)), new Texture("Water", Color.FromArgb(0, 0, 153)));       
+            Debug("GetHigherThan");
 
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
+            Debug("CreateReverseMask");
             
             int riverAmmount = (int) (getM2() / 1000000) * 3;
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
-            MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
-            MapChanged = true;
-            Thread.Sleep(1000);
+            Debug("GenerateRivers");
+
 
             float[,] convolutedSeaMap = GetWeather.Convolution(waterMask, 200);
-            MaskUtils.DebugPaintFloatMask(this, convolutedSeaMap);
-            MapChanged = true;
-            Thread.Sleep(1000);
+           Debug("Convolution");
 
-            float[,] humidityMap = GetWeather.GetHumidity(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
-            MaskUtils.DebugPaintFloatMask(this, humidityMap);
-            MapChanged = true;
-            Thread.Sleep(1000);
-            
-            float[,] temperatureMap = GetWeather.GetTemperature(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
-            MaskUtils.DebugPaintFloatMask(this, temperatureMap);
-            MapChanged = true;
-            Thread.Sleep(1000);
+            float[,] humidityMap = null;
+            float[,] temperatureMap = null;
 
-            // MaskUtils.DebugPaintFloatMaskRGB(this, temperatureMap, islandHeightMap, humidityMap);
-            // MapChanged = true;
-            // Thread.Sleep(1000);
+            Thread humidityThread = new Thread(() => {
+                humidityMap = GetWeather.GetHumidity(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
+            });
+
+            Thread temperatureThread = new Thread(() => {
+                temperatureMap = GetWeather.GetTemperature(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
+            });
+
+            humidityThread.Start();
+            temperatureThread.Start();
+
+            humidityThread.Join();
+            temperatureThread.Join();
+
+            Debug("GetHumidity and GetTemperature");
 
             Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, convolutedSeaMap);
+            Debug("GenerateBiomes");
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) {
                     Biome biome = biomeMap[i, j];
-                    // Color currentColor = tiles[i, j].Texture.Color;
-                    // Color newColor = Color.FromArgb((currentColor.R + GenerateBiomes.BiomeConfigurations[biome].Color.R) / 2, (currentColor.G + GenerateBiomes.BiomeConfigurations[biome].Color.G) / 2, (currentColor.B + GenerateBiomes.BiomeConfigurations[biome].Color.B) / 2);
-                    // Paint(new Texture(biome.ToString(), newColor), i, j);
                     Paint(new Texture(biome.ToString(), GenerateBiomes.BiomeConfigurations[biome].Color), i, j);
                 }
             }
+            Debug("PaintBiomes");
 
 
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
+            Debug("PaintRivers");
             MapChanged = true;
         }
 
@@ -145,7 +149,7 @@ namespace Shared.ProceduralGeneration
             int wallX = x * 2 + 1 + side.GetX();
             int wallY = y * 2 + 1 + side.GetY();
             int textureIndex = AddOrGetTextureType(texture);
-            Walls[wallX, wallY].TextureIndex = textureIndex;
+            //Walls[wallX, wallY].TextureIndex = textureIndex;
         }
 
         public void PaintWall(Texture texture, int wallX, int wallY, bool half = false, bool topLeft = false, float thickness = .3f) {
