@@ -22,7 +22,7 @@ namespace Shared.ProceduralGeneration.Island
             for (int i = 0; i < riverCount * 2; i++)
             {
                 AddRiverToMask(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
-                Console.WriteLine($"River {i} of {riverCount} (2)");
+                Console.WriteLine($"River {i} of {riverCount * 2} (2)");
             }
 
             return riverMask;
@@ -74,7 +74,6 @@ namespace Shared.ProceduralGeneration.Island
         }
         
         private static List<Point> GenerateRiver(Map map, bool[,] waterMask, float[,] mergedHeightMap, bool[,] riverMask, Random random, int attempt = 0)        {
-            Console.WriteLine($"Starting");
             if (attempt > 10) {
                 return new List<Point>();
             }
@@ -119,8 +118,6 @@ namespace Shared.ProceduralGeneration.Island
             int visitedCount = 0;
             HashSet<(int x, int y, int dx, int dy)> visitedPositionsAndDirections = new HashSet<(int, int, int, int)>();
 
-            Texture texture = new Texture("falopa", Color.Red);
-
             List<Point> riverPoints = new List<Point>();
             while (startPoint.x >= 0 && startPoint.x < width && startPoint.y >= 0 && startPoint.y < height && !waterMask[(int)startPoint.x, (int)startPoint.y])
             {
@@ -143,7 +140,6 @@ namespace Shared.ProceduralGeneration.Island
                         break;
                     }
                     riverPoints.Add(new Point(currentX, currentY));
-                    map.Paint(texture, currentX, currentY);
                     visitedCount++;
                 } 
                 else 

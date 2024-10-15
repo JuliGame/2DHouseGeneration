@@ -76,34 +76,31 @@ namespace Shared.ProceduralGeneration
             return x * y;
         }
 
-        public void Generate(int seed, Action<string> Debug) {
-            Debug("start");
+        public void Generate(int seed, Action<string, bool> Debug) {
+            Debug("GEN", false);
             MapChanged = true;
-            // GenerateEmpty(seed);
-            Debug("empty");
-
             GenerateBiomes.SetupDict();
 
+            Debug("GEN-Heightmap", false);
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
-            Debug("GenerateIsland");
-            MapChanged = true;
+            Debug("GEN-Heightmap", true);
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
 
+            Debug("GEN-GenerateRivers", false);
             int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
-            Debug("GenerateRivers");
-            MapChanged = true;
+            Debug("GEN-GenerateRivers", true);
 
-            MaskUtils.DebugPaintFloatMask(this, riverMask);
-
+            Debug("GEN-Convolution", false);
             float[,] convolutedSeaMap = GetWeather.Convolution(waterMask, 200);
-            Debug("Convolution");
+            Debug("GEN-Convolution", true);
 
             float[,] humidityMap = null;
             float[,] temperatureMap = null;
 
+            Debug("GEN-GetHumidity and GetTemperature", false);
             Thread humidityThread = new Thread(() => {
                 humidityMap = GetWeather.GetHumidity(this, convolutedSeaMap, islandHeightMap, riverMask, seed);
             });
@@ -118,25 +115,26 @@ namespace Shared.ProceduralGeneration
             humidityThread.Join();
             temperatureThread.Join();
 
-            Debug("GetHumidity and GetTemperature");
+            Debug("GEN-GetHumidity and GetTemperature", true);
 
+            Debug("GEN-GenerateBiomes", false);
             Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, convolutedSeaMap);
-            Debug("GenerateBiomes");
+            Debug("GEN-GenerateBiomes", true);
+
+            Debug("GEN-Final Paint", false);
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) {
                     Biome biome = biomeMap[i, j];
                     Color biomColor = BiomeConfigurations[biome].Color;
-                    float height = Math.Max(0, Math.Min(1, (islandHeightMap[i, j] + .5f)));
-                    Color mergedColor = Color.FromArgb((int) (biomColor.R * height), (int) (biomColor.G * height), (int) (biomColor.B * height));
-                    Paint(new Texture(biome.ToString(), mergedColor), i, j);
+                    // float height = Math.Max(0, Math.Min(1, (islandHeightMap[i, j] + .5f)));
+                    // Color mergedColor = Color.FromArgb((int) (biomColor.R * height), (int) (biomColor.G * height), (int) (biomColor.B * height));
+                    Paint(new Texture(biome.ToString(), biomColor), i, j);
                 }
             }
-            Debug("PaintBiomes");
-
-
             MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
-            Debug("PaintRivers");
+            Debug("GEN-Final Paint", true);
             MapChanged = true;
+            Debug("GEN", true);
         }
 
         public void Paint(Texture texture, int x, int y, string text = null) {

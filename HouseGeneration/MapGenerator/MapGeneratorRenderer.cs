@@ -7,6 +7,7 @@ using Shared.ProceduralGeneration;
 using System.Windows.Forms;
 using System.Threading;
 using System.ComponentModel.Design;
+using HouseGeneration.UI;
 
 namespace HouseGeneration.MapGeneratorRenderer
 {
@@ -20,6 +21,7 @@ namespace HouseGeneration.MapGeneratorRenderer
         private InputHandler _inputHandler;
         private MapRenderer _mapRenderer;
         private ConsoleManager _consoleManager;
+        private TaskPerformanceMenu _taskPerformanceMenu;
 
         private Map _map;
         private bool _isGeneratingMap = false;
@@ -55,7 +57,7 @@ namespace HouseGeneration.MapGeneratorRenderer
             _inputHandler = new InputHandler(this);
             _mapRenderer = new MapRenderer(GraphicsDevice, Content);
             _consoleManager = new ConsoleManager();
-
+            _taskPerformanceMenu = new TaskPerformanceMenu();
 
             Console.SetOut(new CustomConsoleWriter(_consoleManager));
             Console.WriteLine("Console initialized");
@@ -101,6 +103,7 @@ namespace HouseGeneration.MapGeneratorRenderer
 
             _consoleManager.Draw();
             DrawUI();
+            _taskPerformanceMenu.Draw();
 
             _imGuiRenderer.EndLayout();
 
@@ -202,7 +205,6 @@ namespace HouseGeneration.MapGeneratorRenderer
         Thread mapGenerationThread = null;
         private void GenerateMap()
         {
-
             if (mapGenerationThread != null && mapGenerationThread.IsAlive)            
                 return;           
 
@@ -211,10 +213,13 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 try 
                 {
-                    //_map = new Map(1024 * 3, 1024 * 3); // Example size
-                    _map = new Map(1024 * 10, 1024 * 10); // Example size
-                    _map.Generate(_seed, (string message) => {
-                        Console.WriteLine(message);
+                    _map = new Map(1024 * 3, 1024 * 3); // Example size
+                    _map.Generate(_seed, (string taskName, bool end) => {
+                        if (end) {
+                            _taskPerformanceMenu.EndTask(taskName);
+                        } else {
+                            _taskPerformanceMenu.StartTask(taskName);
+                        }
                     });
                     
                     mapGenerationThread = null;
@@ -228,7 +233,6 @@ namespace HouseGeneration.MapGeneratorRenderer
 
                 _seed++;
             });
-
 
             mapGenerationThread.Start();
             Console.WriteLine("Map generation thread started!");

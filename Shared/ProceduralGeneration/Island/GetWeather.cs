@@ -204,6 +204,8 @@ namespace Shared.ProceduralGeneration.Island
 
         public static float[,] Convolution(bool[,] input, int kernelSize)
         {
+            
+
             int width = input.GetLength(0);
             int height = input.GetLength(1);
             float[,] output = new float[width, height];
