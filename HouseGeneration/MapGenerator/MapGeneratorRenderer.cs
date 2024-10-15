@@ -69,11 +69,17 @@ namespace HouseGeneration.MapGeneratorRenderer
             _imGuiRenderer.RebuildFontAtlas();
         }
 
+
         protected override void Update(GameTime gameTime)
         {
             _inputHandler.HandleInput(gameTime);
             _camera.UpdateViewport(GraphicsDevice.Viewport);
+            
+
+
             _mapRenderer.Update(_map, _camera);
+
+            
 
             if (_isGeneratingMap)
             {
@@ -110,7 +116,18 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 _isGeneratingMap = true;
             }
-
+            ImGui.SameLine();
+            if (ImGui.Button("Force re-render"))
+            {
+                _map.MapChanged = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("\uf2ed")) // Unicode for trash can icon
+            {
+                _map.MapChanged = true;
+                _mapRenderer.ClearChunks();
+            }
+            
             DrawCameraGizmo();
             DrawCameraPositionGizmo();
 
@@ -185,7 +202,6 @@ namespace HouseGeneration.MapGeneratorRenderer
         Thread mapGenerationThread = null;
         private void GenerateMap()
         {
-            _map = new Map(1024 * 3, 1024 * 3); // Example size
 
             if (mapGenerationThread != null && mapGenerationThread.IsAlive)            
                 return;           
@@ -195,6 +211,8 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 try 
                 {
+                    //_map = new Map(1024 * 3, 1024 * 3); // Example size
+                    _map = new Map(1024 * 10, 1024 * 10); // Example size
                     _map.Generate(_seed, (string message) => {
                         Console.WriteLine(message);
                     });

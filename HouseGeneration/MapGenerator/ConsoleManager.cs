@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Accord.IO;
 using ImGuiNET;
 
@@ -7,15 +7,17 @@ namespace HouseGeneration.MapGeneratorRenderer
 {
     public class ConsoleManager
     {
-        private List<string> _consoleMessages = new List<string>();
+        private readonly ConcurrentQueue<(DateTime timestamp, string message)> _consoleMessages = new ConcurrentQueue<(DateTime, string)>();
         private const int MaxMessages = 100;
 
         public void AddMessage(string message)
         {
-            _consoleMessages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
-            if (_consoleMessages.Count > MaxMessages)
+            _consoleMessages.Enqueue((DateTime.Now, message));
+            
+            // Remove oldest messages if we exceed the maximum
+            while (_consoleMessages.Count > MaxMessages)
             {
-                _consoleMessages.RemoveAt(0);
+                _consoleMessages.TryDequeue(out _);
             }
         }
 
@@ -23,9 +25,16 @@ namespace HouseGeneration.MapGeneratorRenderer
         {
             ImGui.Begin("Console");
 
-            foreach (var message in _consoleMessages.DeepClone())
+            try
             {
-                ImGui.Text(message);
+                foreach (var (timestamp, message) in _consoleMessages)
+                {
+                    ImGui.Text($"[{timestamp:yyyy-MM-dd HH:mm:ss}] {message}");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
 
             if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY())

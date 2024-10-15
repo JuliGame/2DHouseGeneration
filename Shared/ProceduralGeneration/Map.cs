@@ -27,17 +27,16 @@ namespace Shared.ProceduralGeneration
             TileTypes = new List<Tile>();
             TextureTypes = new List<Texture>();
             Walls = new Wall[x*2+1, y*2+1];
-        
+
             GenerateEmpty(0);
         }
 
         private void GenerateEmpty(int seed) {
-            Random random = new Random(seed);
+            Color randomGreen = Color.FromArgb(0, 100, 0);
+            int textureIndex = AddOrGetTextureType(new Texture("Void", randomGreen));
+            int tileIndex = AddOrGetTileType(new Tile(textureIndex));
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) { 
-                    Color randomGreen = Color.FromArgb(0, 100, 0);
-                    int textureIndex = AddOrGetTextureType(new Texture("Void", randomGreen));
-                    int tileIndex = AddOrGetTileType(new Tile(textureIndex));
                     tileIndices[i, j] = tileIndex;
                 }
             }
@@ -79,7 +78,7 @@ namespace Shared.ProceduralGeneration
 
         public void Generate(int seed, Action<string> Debug) {
             Debug("start");
-
+            MapChanged = true;
             // GenerateEmpty(seed);
             Debug("empty");
 
@@ -87,6 +86,7 @@ namespace Shared.ProceduralGeneration
 
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed);
             Debug("GenerateIsland");
+            MapChanged = true;
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
@@ -94,6 +94,7 @@ namespace Shared.ProceduralGeneration
             int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
             Debug("GenerateRivers");
+            MapChanged = true;
 
             MaskUtils.DebugPaintFloatMask(this, riverMask);
 

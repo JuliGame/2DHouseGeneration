@@ -5,6 +5,7 @@ using Shared.ProceduralGeneration;
 using Shared.ProceduralGeneration.Util;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace HouseGeneration.MapGeneratorRenderer
 {
@@ -12,7 +13,7 @@ namespace HouseGeneration.MapGeneratorRenderer
     {
         private GraphicsDevice _graphicsDevice;
         private Dictionary<Point, RenderTarget2D> _mapChunks;
-        private const int ChunkSize = 128;
+        private int ChunkSize = 1024;
         private BasicEffect _basicEffect;
         private VertexPositionColor[] _lineVertices;
         private SpriteFont _font;
@@ -34,6 +35,7 @@ namespace HouseGeneration.MapGeneratorRenderer
             _textEffect.Projection = Matrix.CreateOrthographicOffCenter(0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height, 0, 0, 1);
         }
 
+        Thread renderThread;
         public void Update(Map map, Camera camera)
         {
             if (map == null) return;
@@ -47,19 +49,32 @@ namespace HouseGeneration.MapGeneratorRenderer
             int endX = (int)Math.Ceiling(bottomRight.X / ChunkSize);
             int endY = (int)Math.Ceiling(bottomRight.Y / ChunkSize);
 
+            startX = Math.Max(startX, 0);
+            startY = Math.Max(startY, 0);
+            endX = Math.Min(endX, map.x / ChunkSize);
+            endY = Math.Min(endY, map.y / ChunkSize);
+
             // Generate or update chunks as needed
-            for (int x = startX; x <= endX; x++)
+
+            if (renderThread == null || !renderThread.IsAlive)
             {
-                for (int y = startY; y <= endY; y++)
-                {
-                    Point chunkCoord = new Point(x, y);
-                    if (!_mapChunks.ContainsKey(chunkCoord) || map.MapChanged)
+                renderThread = new Thread(() => {
+                    for (int x = startX; x <= endX; x++)
                     {
-                        RenderChunk(map, chunkCoord);
+                        for (int y = startY; y <= endY; y++)
+                        {
+                            Point chunkCoord = new Point(x, y);
+                            if (!_mapChunks.ContainsKey(chunkCoord) || map.MapChanged)
+                            {
+                                RenderChunk(map, chunkCoord);
+                            }
+                        }
                     }
-                }
+                    map.MapChanged = false;
+                });
+                renderThread.Start();
             }
-            map.MapChanged = false;
+
 
             // Remove chunks that are no longer visible
             List<Point> chunksToRemove = new List<Point>();
@@ -68,7 +83,7 @@ namespace HouseGeneration.MapGeneratorRenderer
                 if (chunk.Key.X < startX || chunk.Key.X > endX ||
                     chunk.Key.Y < startY || chunk.Key.Y > endY)
                 {
-                    // chunksToRemove.Add(chunk.Key);
+                    chunksToRemove.Add(chunk.Key);
                 }
             }
 
@@ -77,6 +92,15 @@ namespace HouseGeneration.MapGeneratorRenderer
                 _mapChunks[chunkCoord].Dispose();
                 _mapChunks.Remove(chunkCoord);
             }
+        }
+
+        public void ClearChunks()
+        {
+            foreach (var chunk in _mapChunks)
+            {
+                chunk.Value.Dispose();
+            }
+            _mapChunks.Clear();
         }
 
         public void Draw(SpriteBatch spriteBatch, Camera _camera)
@@ -90,7 +114,8 @@ namespace HouseGeneration.MapGeneratorRenderer
                 // add an offset of 1 tile to the position
 
                 Rectangle destinationRectangle = new Rectangle((int)position.X, (int)position.Y, ChunkSize, ChunkSize);
-                spriteBatch.Draw(chunk.Value, destinationRectangle, Color.White);
+                if (chunk.Value != null)
+                    spriteBatch.Draw(chunk.Value, destinationRectangle, Color.White);
             }
 
             DrawGizmos(spriteBatch, _camera);
@@ -115,7 +140,6 @@ namespace HouseGeneration.MapGeneratorRenderer
                     if (mapX < map.x && mapY < map.y && mapX >= 0 && mapY >= 0)
                     {
                         Tile tile = map.GetTile(mapX, mapY);
-                        Console.WriteLine("Index: " + tile.TextureIndex + " mapX: " + mapX + " mapY: " + mapY);
                         System.Drawing.Color tileColor = map.TextureTypes[tile.TextureIndex].Color;
 
                         // System.Drawing.Color tileColor = System.Drawing.Color.FromArgb(random.Next(256), i, 255);

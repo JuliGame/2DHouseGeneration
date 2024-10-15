@@ -13,7 +13,7 @@ namespace Shared.ProceduralGeneration.Island
 
             for (int i = 0; i < riverCount; i++)
             {
-                riverMask = MaskUtils.AddMasks(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
+                AddRiverToMask(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
                 Console.WriteLine($"River {i} of {riverCount} (1)");
             }
 
@@ -21,11 +21,19 @@ namespace Shared.ProceduralGeneration.Island
 
             for (int i = 0; i < riverCount * 2; i++)
             {
-                riverMask = MaskUtils.AddMasks(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
+                AddRiverToMask(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
                 Console.WriteLine($"River {i} of {riverCount} (2)");
             }
 
             return riverMask;
+        }
+
+        private static void AddRiverToMask(bool[,] riverMask, List<Point> riverPoints)
+        {
+            foreach (var point in riverPoints)
+            {
+                riverMask[point.X, point.Y] = true;
+            }
         }
 
         private static bool[,] ExpandRiver(bool[,] riverMask, int radius)
@@ -65,28 +73,27 @@ namespace Shared.ProceduralGeneration.Island
             }
         }
         
-        private static bool[,] GenerateRiver(Map map, bool[,] waterMask, float[,] mergedHeightMap, bool[,] riverMask, Random random, int attempt = 0)        {
+        private static List<Point> GenerateRiver(Map map, bool[,] waterMask, float[,] mergedHeightMap, bool[,] riverMask, Random random, int attempt = 0)        {
             Console.WriteLine($"Starting");
             if (attempt > 10) {
-                return new bool[map.x, map.y];
+                return new List<Point>();
             }
 
             bool[,] riverMask_original = (bool[,]) riverMask.Clone();
 
             // we define a director vector to move the river
-            (float x, float y) direction = (random.Next(-10, 10) * .1f, random.Next(-10, 10) * .1f);
+            int angle = random.Next(0, 360) * 10;
+            (float x, float y) direction = ((float)Math.Cos(angle), (float)Math.Sin(angle));
 
             (float x, float y) startPoint = (random.Next(0, map.x), random.Next(0, map.y));
 
             // while point is in water generate another point
             while (waterMask[(int) startPoint.x, (int) startPoint.y]) {
-                Console.WriteLine("1");
                 startPoint = (random.Next(0, map.x), random.Next(0, map.y));
             }
 
             // walk intil a water tile is found or the edge of the map is reached
             while (startPoint.x >= 0 && startPoint.x < map.x && startPoint.y >= 0 && startPoint.y < map.y && !waterMask[(int) startPoint.x, (int) startPoint.y]) {
-                Console.WriteLine("2");
                 startPoint.x += direction.x;
                 startPoint.y += direction.y;
                 if (startPoint.x >= 0 && startPoint.x < map.x && startPoint.y >= 0 && startPoint.y < map.y) {
@@ -114,22 +121,14 @@ namespace Shared.ProceduralGeneration.Island
 
             Texture texture = new Texture("falopa", Color.Red);
 
+            List<Point> riverPoints = new List<Point>();
             while (startPoint.x >= 0 && startPoint.x < width && startPoint.y >= 0 && startPoint.y < height && !waterMask[(int)startPoint.x, (int)startPoint.y])
             {
-                Console.WriteLine("3");
                 if (visitedCount > 10000)
                     break;
 
                 int currentX = (int)startPoint.x;
                 int currentY = (int)startPoint.y;
-
-                // Check if we've been here before with the same direction
-                // if (!visitedPositionsAndDirections.Add((currentX, currentY, (int) (direction.x * 360), (int) (direction.y * 360))))
-                // {
-                //     // If we have, break the loop
-                //     Console.WriteLine("visited");
-                //     break;
-                // }
 
                 (direction.x, direction.y) = RotateVector(direction.x, direction.y, startPoint.x, startPoint.y, mergedHeightMap, random);
 
@@ -143,7 +142,7 @@ namespace Shared.ProceduralGeneration.Island
                         // If we hit an existing river, terminate
                         break;
                     }
-                    visited[currentX, currentY] = true;
+                    riverPoints.Add(new Point(currentX, currentY));
                     map.Paint(texture, currentX, currentY);
                     visitedCount++;
                 } 
@@ -153,12 +152,10 @@ namespace Shared.ProceduralGeneration.Island
                 }
             }
 
-            // map.MapChanged = true;
-
             if (visitedCount < 200) {
-                return GenerateRiver(map, waterMask, mergedHeightMap, riverMask_original, random, attempt + 1);
+                return GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random, attempt + 1);
             }
-            return visited;
+            return riverPoints;
         }
 
         private static float comeBack = 0;
