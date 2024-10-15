@@ -15,7 +15,7 @@ namespace Shared.ProceduralGeneration.Island
     {
         private static Random random = null;
         private static Context context;
-        private static Accelerator accelerator;
+        public static Accelerator accelerator;
 
         static GetWeather()
         {

@@ -80,7 +80,7 @@ namespace Shared.ProceduralGeneration
         public void Generate(int seed, Action<string> Debug) {
             Debug("start");
 
-            GenerateEmpty(seed);
+            // GenerateEmpty(seed);
             Debug("empty");
 
             GenerateBiomes.SetupDict();
@@ -89,18 +89,18 @@ namespace Shared.ProceduralGeneration
             Debug("GenerateIsland");
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
-            Debug("GetHigherThan");
-
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
-            Debug("CreateReverseMask");
-            
-            int riverAmmount = (int) (getM2() / 1000000) * 3;
+
+            int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
             Debug("GenerateRivers");
 
+            MaskUtils.DebugPaintFloatMask(this, riverMask);
+            MapChanged = true;
+
 
             float[,] convolutedSeaMap = GetWeather.Convolution(waterMask, 200);
-           Debug("Convolution");
+            Debug("Convolution");
 
             float[,] humidityMap = null;
             float[,] temperatureMap = null;
