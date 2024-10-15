@@ -14,7 +14,7 @@ namespace Shared.ProceduralGeneration.Island
             for (int i = 0; i < riverCount; i++)
             {
                 AddRiverToMask(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
-                Console.WriteLine($"River {i} of {riverCount} (1)");
+                // Console.WriteLine($"River {i} of {riverCount} (1)");
             }
 
             riverMask = ExpandRiver(riverMask, 2);
@@ -22,7 +22,7 @@ namespace Shared.ProceduralGeneration.Island
             for (int i = 0; i < riverCount * 2; i++)
             {
                 AddRiverToMask(riverMask, GenerateRiver(map, waterMask, mergedHeightMap, riverMask, random));
-                Console.WriteLine($"River {i} of {riverCount * 2} (2)");
+                // Console.WriteLine($"River {i} of {riverCount * 2} (2)");
             }
 
             return riverMask;

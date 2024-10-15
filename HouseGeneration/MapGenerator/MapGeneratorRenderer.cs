@@ -213,7 +213,7 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 try 
                 {
-                    _map = new Map(1024 * 3, 1024 * 3); // Example size
+                    _map = new Map(1024 * 1, 1024 * 1); // Example size
                     _map.Generate(_seed, (string taskName, bool end) => {
                         if (end) {
                             _taskPerformanceMenu.EndTask(taskName);

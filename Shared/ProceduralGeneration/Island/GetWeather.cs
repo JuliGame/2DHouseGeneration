@@ -108,12 +108,7 @@ namespace Shared.ProceduralGeneration.Island
         {
             int width = input.GetLength(0);
             int height = input.GetLength(1);
-            float[,] output = new float[width, height];
-
-            // Create kernel
-            float[] kernel = CreateGaussianKernel(kernelSize);
-
-            // Prepare input data
+ 
             float[] flatInput = new float[width * height];
             for (int y = 0; y < height; y++)
             {
@@ -122,6 +117,31 @@ namespace Shared.ProceduralGeneration.Island
                     flatInput[y * width + x] = input[x, y];
                 }
             }
+
+            return Convolution(flatInput, kernelSize, width, height);
+        }
+
+        public static float[,] Convolution(bool[,] input, int kernelSize)
+        {
+            int width = input.GetLength(0);
+            int height = input.GetLength(1);
+
+            // Prepare input data
+            float[] flatInput = new float[width * height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    flatInput[y * width + x] = input[x, y] ? 1f : 0f;
+                }
+            }
+
+            return Convolution(flatInput, kernelSize, width, height);
+        }
+
+        public static float[,] Convolution(float[] flatInput, int kernelSize, int width, int height)        {
+            float[,] output = new float[width, height];
+            float[] kernel = CreateGaussianKernel(kernelSize);
 
             try
             {
@@ -157,19 +177,14 @@ namespace Shared.ProceduralGeneration.Island
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 
                 // Fallback to CPU implementation
-                return FallbackCPUConvolution(input, kernelSize);
+                return FallbackCPUConvolution(flatInput, kernelSize, width, height);
             }
 
             return output;
         }
 
-        // ... existing ConvolutionKernel and CreateGaussianKernel methods ...
-
-        // Add this method for CPU fallback
-        private static float[,] FallbackCPUConvolution(float[,] input, int kernelSize)
+        private static float[,] FallbackCPUConvolution(float[] flatInput, int kernelSize, int width, int height)
         {
-            int width = input.GetLength(0);
-            int height = input.GetLength(1);
             float[,] output = new float[width, height];
             float[] kernel = CreateGaussianKernel(kernelSize);
             int halfKernel = kernelSize / 2;
@@ -191,7 +206,7 @@ namespace Shared.ProceduralGeneration.Island
                             {
                                 int kernelIndex = (ky + halfKernel) * kernelSize + (kx + halfKernel);
                                 float kernelValue = kernel[kernelIndex];
-                                sum += input[sx, sy] * kernelValue;
+                                sum += flatInput[sy * width + sx] * kernelValue;
                                 weightSum += kernelValue;
                             }
                         }
@@ -199,68 +214,6 @@ namespace Shared.ProceduralGeneration.Island
                     output[x, y] = weightSum > 0 ? sum / weightSum : 0;
                 }
             }
-            return output;
-        }
-
-        public static float[,] Convolution(bool[,] input, int kernelSize)
-        {
-            
-
-            int width = input.GetLength(0);
-            int height = input.GetLength(1);
-            float[,] output = new float[width, height];
-
-            // Create kernel
-            float[] kernel = CreateGaussianKernel(kernelSize);
-
-            // Prepare input data
-            float[] flatInput = new float[width * height];
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    flatInput[y * width + x] = input[x, y] ? 1f : 0f;
-                }
-            }
-
-            try
-            {
-                // Allocate memory on the GPU
-                using (var gpuInput = accelerator.Allocate1D(flatInput))
-                using (var gpuKernel = accelerator.Allocate1D(kernel))
-                using (var gpuOutput = accelerator.Allocate1D<float>(width * height))
-                {
-                    // Compile and load the kernel
-                    var convolutionKernel = accelerator.LoadAutoGroupedStreamKernel<
-                        Index2D, ArrayView<float>, ArrayView<float>, ArrayView<float>, int, int, int>(ConvolutionKernel);
-
-                    // Launch the kernel
-                    convolutionKernel(new Index2D(width, height), gpuInput.View, gpuKernel.View, gpuOutput.View, width, height, kernelSize);
-                    accelerator.Synchronize();
-
-                    // Copy the result back to the CPU
-                    float[] flatOutput = gpuOutput.GetAsArray1D();
-
-                    // Convert flat array back to 2D array
-                    for (int y = 0; y < height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            output[x, y] = flatOutput[y * width + x];
-                        }
-                    }
-                }
-            }
-            catch (ILGPU.Runtime.Cuda.CudaException ex)
-            {
-                Console.WriteLine($"Error en la ejecución CUDA: {ex.Message}");
-                Console.WriteLine($"CudaErrorCode: {ex}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                
-                // Fallback to CPU implementation
-                return FallbackCPUConvolution(input, kernelSize);
-            }
-
             return output;
         }
 
@@ -328,41 +281,6 @@ namespace Shared.ProceduralGeneration.Island
             }
 
             return kernel;
-        }
-
-        // Add this method for CPU fallback
-        private static float[,] FallbackCPUConvolution(bool[,] input, int kernelSize)
-        {
-            // Implement a CPU version of the convolution here
-            // This is a simplified example, you should implement the full convolution logic
-            int width = input.GetLength(0);
-            int height = input.GetLength(1);
-            float[,] output = new float[width, height];
-            
-            // Simple box blur as an example (replace with actual convolution logic)
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float sum = 0;
-                    int count = 0;
-                    for (int ky = -kernelSize/2; ky <= kernelSize/2; ky++)
-                    {
-                        for (int kx = -kernelSize/2; kx <= kernelSize/2; kx++)
-                        {
-                            int sx = x + kx;
-                            int sy = y + ky;
-                            if (sx >= 0 && sx < width && sy >= 0 && sy < height)
-                            {
-                                sum += input[sx, sy] ? 1 : 0;
-                                count++;
-                            }
-                        }
-                    }
-                    output[x, y] = sum / count;
-                }
-            }
-            return output;
         }
     }
 }
