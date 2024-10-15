@@ -124,7 +124,10 @@ namespace Shared.ProceduralGeneration
             for (int i = 0; i < x; i++) {
                 for (int j = 0; j < y; j++) {
                     Biome biome = biomeMap[i, j];
-                    Paint(new Texture(biome.ToString(), GenerateBiomes.BiomeConfigurations[biome].Color), i, j);
+                    Color biomColor = BiomeConfigurations[biome].Color;
+                    float height = Math.Max(0, Math.Min(1, (islandHeightMap[i, j] + .5f)));
+                    Color mergedColor = Color.FromArgb((int) (biomColor.R * height), (int) (biomColor.G * height), (int) (biomColor.B * height));
+                    Paint(new Texture(biome.ToString(), mergedColor), i, j);
                 }
             }
             Debug("PaintBiomes");

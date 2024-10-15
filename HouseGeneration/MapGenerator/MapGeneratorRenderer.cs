@@ -185,7 +185,7 @@ namespace HouseGeneration.MapGeneratorRenderer
         Thread mapGenerationThread = null;
         private void GenerateMap()
         {
-            _map = new Map(1024, 1024); // Example size
+            _map = new Map(1024 * 3, 1024 * 3); // Example size
 
             if (mapGenerationThread != null && mapGenerationThread.IsAlive)            
                 return;           

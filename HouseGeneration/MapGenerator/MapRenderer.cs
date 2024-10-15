@@ -68,7 +68,7 @@ namespace HouseGeneration.MapGeneratorRenderer
                 if (chunk.Key.X < startX || chunk.Key.X > endX ||
                     chunk.Key.Y < startY || chunk.Key.Y > endY)
                 {
-                    chunksToRemove.Add(chunk.Key);
+                    // chunksToRemove.Add(chunk.Key);
                 }
             }
 
