@@ -9,39 +9,58 @@ namespace HouseGeneration.UI
 {
     public class TaskPerformanceMenu
     {
-        private Dictionary<string, List<long>> _taskDurations = new Dictionary<string, List<long>>();
-        private Dictionary<string, Stopwatch> _taskStopwatches = new Dictionary<string, Stopwatch>();
+        private class TaskNode
+        {
+            public string Name { get; set; }
+            public List<long> Durations { get; set; } = new List<long>();
+            public Dictionary<string, TaskNode> Children { get; set; } = new Dictionary<string, TaskNode>();
+            public TaskNode Parent { get; set; }
+            public Stopwatch Stopwatch { get; set; } = new Stopwatch();
+        }
+
+        private TaskNode _rootTask = new TaskNode { Name = "Root" };
+        private TaskNode _currentTask;
+        private Dictionary<string, TaskNode> _activeTasks = new Dictionary<string, TaskNode>();
         
-        // Add these new fields
-        private List<Dictionary<string, List<long>>> _profiles = new List<Dictionary<string, List<long>>>();
+        private List<TaskNode> _profiles = new List<TaskNode>();
         private int _currentProfileIndex = 0;
         private string _newProfileName = string.Empty;
 
+        public TaskPerformanceMenu()
+        {
+            _currentTask = _rootTask;
+        }
+
         public void StartTask(string taskName)
         {
-            if (!_taskStopwatches.ContainsKey(taskName))
+            string[] taskParts = taskName.Split('-');
+            TaskNode currentNode = _rootTask;
+
+            for (int i = 0; i < taskParts.Length; i++)
             {
-                _taskStopwatches[taskName] = new Stopwatch();
+                string currentTaskName = string.Join("-", taskParts.Take(i + 1));
+                if (!currentNode.Children.TryGetValue(taskParts[i], out TaskNode childNode))
+                {
+                    childNode = new TaskNode { Name = taskParts[i], Parent = currentNode };
+                    currentNode.Children[taskParts[i]] = childNode;
+                }
+                currentNode = childNode;
             }
-            _taskStopwatches[taskName].Restart();
+
+            currentNode.Stopwatch.Restart();
+            _activeTasks[taskName] = currentNode;
         }
 
         public void EndTask(string taskName)
         {
-            if (_taskStopwatches.TryGetValue(taskName, out var stopwatch))
+            if (_activeTasks.TryGetValue(taskName, out TaskNode node))
             {
-                stopwatch.Stop();
-                long duration = stopwatch.ElapsedMilliseconds;
-
-                if (!_taskDurations.ContainsKey(taskName))
-                {
-                    _taskDurations[taskName] = new List<long>();
-                }
-                _taskDurations[taskName].Add(duration);
+                node.Stopwatch.Stop();
+                node.Durations.Add(node.Stopwatch.ElapsedMilliseconds);
+                _activeTasks.Remove(taskName);
             }
             else
             {
-                // Handle the case where EndTask is called without a corresponding StartTask
                 Console.WriteLine($"Warning: EndTask called for '{taskName}' without a corresponding StartTask.");
             }
         }
@@ -50,12 +69,17 @@ namespace HouseGeneration.UI
         {
             ImGui.Begin("Task Performance");
 
-            // Add profile management UI
             DrawProfileManagement();
 
-            if (_taskDurations.Count > 0)
+            if (_rootTask.Children.Count > 0)
             {
-                DrawPieChart();
+                if (ImGui.Button("Back") && _currentTask.Parent != null)
+                {
+                    _currentTask = _currentTask.Parent;
+                }
+
+                DrawPieChart(_currentTask);
+                DrawTaskTable(_currentTask);
             }
             else
             {
@@ -100,13 +124,14 @@ namespace HouseGeneration.UI
             {
                 // Switching to a new profile
                 _currentProfileIndex = index;
-                _taskDurations = new Dictionary<string, List<long>>();
+                _rootTask = new TaskNode { Name = "Root" };
             }
             else if (index >= 0 && index < _profiles.Count)
             {
                 _currentProfileIndex = index;
-                _taskDurations = _profiles[index];
+                _rootTask = _profiles[index];
             }
+            _currentTask = _rootTask;
         }
 
         private void CreateNewProfile()
@@ -114,28 +139,25 @@ namespace HouseGeneration.UI
             if (!string.IsNullOrWhiteSpace(_newProfileName))
             {
                 // Save current profile if it's not empty
-                if (_taskDurations.Count > 0)
+                if (_rootTask.Children.Count > 0)
                 {
-                    _profiles.Add(new Dictionary<string, List<long>>(_taskDurations));
+                    _profiles.Add(_rootTask);
                 }
 
                 // Create new profile
-                _taskDurations = new Dictionary<string, List<long>>();
+                _rootTask = new TaskNode { Name = "Root" };
+                _currentTask = _rootTask;
                 _currentProfileIndex = _profiles.Count;
                 _newProfileName = string.Empty;
             }
         }
 
-        private void DrawPieChart()
+        private void DrawPieChart(TaskNode node)
         {
-            var averageDurations = _taskDurations.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.Average()
-            );
+            var taskDurations = GetAverageDurations(node);
+            float total = taskDurations.Values.Sum();
 
-            float total = (float) averageDurations.Values.Sum();
-
-            ImGui.Text("Task Performance Breakdown");
+            ImGui.Text($"{node.Name} Performance Breakdown");
             ImGui.Spacing();
 
             System.Numerics.Vector2 center = ImGui.GetCursorScreenPos() + new System.Numerics.Vector2(250, 100);
@@ -143,9 +165,9 @@ namespace HouseGeneration.UI
             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
 
             float currentAngle = 0;
-            foreach (var task in averageDurations)
+            foreach (var task in taskDurations)
             {
-                float slice = (float)task.Value / total;
+                float slice = task.Value / total;
                 float nextAngle = currentAngle + slice * 2 * MathF.PI;
 
                 ImGui.ColorConvertHSVtoRGB(currentAngle / (2 * MathF.PI), 0.7f, 0.7f, out float r, out float g, out float b);
@@ -156,20 +178,17 @@ namespace HouseGeneration.UI
 
                 System.Numerics.Vector2 labelPos = center + new System.Numerics.Vector2(MathF.Cos((currentAngle + nextAngle) / 2), MathF.Sin((currentAngle + nextAngle) / 2)) * (radius * 1.3f);
                 
-                // Determine if the label is on the left side of the circle
                 bool isLeftSide = labelPos.X < center.X;
-
-                string labelText = $"{task.Key}: {(float)task.Value:F0}ms";
+                string labelText = $"{task.Key}: {task.Value:F0}ms";
                 System.Numerics.Vector2 textSize = ImGui.CalcTextSize(labelText);
 
-                // Adjust label position based on which side it's on
                 if (isLeftSide)
                 {
-                    labelPos.X -= textSize.X + 5; // Move text to the left of the point
+                    labelPos.X -= textSize.X + 5;
                 }
                 else
                 {
-                    labelPos.X += 5; // Add a small offset to the right
+                    labelPos.X += 5;
                 }
 
                 drawList.AddText(labelPos, color, labelText);
@@ -178,37 +197,68 @@ namespace HouseGeneration.UI
             }
 
             ImGui.Dummy(new System.Numerics.Vector2(200, 200 * 1.3f));
+        }
 
-            // Sort tasks by average duration (descending order)
-            var sortedTasks = averageDurations.OrderByDescending(x => x.Value);
+        private void DrawTaskTable(TaskNode node)
+        {
+            var taskDurations = GetAverageDurations(node);
+            float total = taskDurations.Values.Sum();
 
-            if (ImGui.BeginTable("TaskPerformanceTable", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
+            if (ImGui.BeginTable($"TaskPerformanceTable_{node.Name}", 5, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
             {
+                ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 20);
                 ImGui.TableSetupColumn("Task Name", ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn("Avg Duration", ImGuiTableColumnFlags.WidthFixed, 100);
                 ImGui.TableSetupColumn("Percentage", ImGuiTableColumnFlags.WidthFixed, 80);
                 ImGui.TableSetupColumn("Samples", ImGuiTableColumnFlags.WidthFixed, 70);
                 ImGui.TableHeadersRow();
 
-                foreach (var task in sortedTasks)
+                foreach (var task in taskDurations.OrderByDescending(x => x.Value))
                 {
                     ImGui.TableNextRow();
                     ImGui.TableSetColumnIndex(0);
+                    
+                    TaskNode childNode = node.Children[task.Key];
+                    bool hasChildren = childNode.Children.Count > 0;
+                    
+                    if (hasChildren)
+                    {
+                        if (ImGui.ArrowButton($"##{childNode.Name}", ImGuiDir.Right))
+                        {
+                            _currentTask = childNode;
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Dummy(new System.Numerics.Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight()));
+                    }
+
+                    ImGui.TableSetColumnIndex(1);
                     ImGui.Text(task.Key);
                     
-                    ImGui.TableSetColumnIndex(1);
+                    ImGui.TableSetColumnIndex(2);
                     ImGui.Text($"{task.Value:F1}ms");
                     
-                    ImGui.TableSetColumnIndex(2);
-                    float percentage = (float)task.Value / total * 100;
+                    ImGui.TableSetColumnIndex(3);
+                    float percentage = task.Value / total * 100;
                     ImGui.Text($"{percentage:F1}%");
                     
-                    ImGui.TableSetColumnIndex(3);
-                    ImGui.Text($"{_taskDurations[task.Key].Count}");
+                    ImGui.TableSetColumnIndex(4);
+                    ImGui.Text($"{childNode.Durations.Count}");
                 }
 
                 ImGui.EndTable();
             }
+        }
+
+        private Dictionary<string, float> GetAverageDurations(TaskNode node)
+        {
+            var result = new Dictionary<string, float>();
+            foreach (var child in node.Children)
+            {
+                result[child.Key] = (float) (child.Value.Durations.Count > 0 ? child.Value.Durations.Average() : 0);
+            }
+            return result;
         }
     }
 }
