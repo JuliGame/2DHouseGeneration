@@ -96,8 +96,6 @@ namespace Shared.ProceduralGeneration
             Debug("GenerateRivers");
 
             MaskUtils.DebugPaintFloatMask(this, riverMask);
-            MapChanged = true;
-
 
             float[,] convolutedSeaMap = GetWeather.Convolution(waterMask, 200);
             Debug("Convolution");

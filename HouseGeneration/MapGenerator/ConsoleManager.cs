@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Accord.IO;
 using ImGuiNET;
 
 namespace HouseGeneration.MapGeneratorRenderer
@@ -22,7 +23,7 @@ namespace HouseGeneration.MapGeneratorRenderer
         {
             ImGui.Begin("Console");
 
-            foreach (var message in _consoleMessages)
+            foreach (var message in _consoleMessages.DeepClone())
             {
                 ImGui.Text(message);
             }

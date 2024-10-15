@@ -53,16 +53,16 @@ namespace HouseGeneration.MapGeneratorRenderer
                 for (int y = startY; y <= endY; y++)
                 {
                     Point chunkCoord = new Point(x, y);
-                    if (!_mapChunks.ContainsKey(chunkCoord))
+                    if (!_mapChunks.ContainsKey(chunkCoord) || map.MapChanged)
                     {
                         RenderChunk(map, chunkCoord);
                     }
                 }
             }
+            map.MapChanged = false;
 
             // Remove chunks that are no longer visible
             List<Point> chunksToRemove = new List<Point>();
-            Console.WriteLine("Drawing from " + startX + " to " + endX + " and " + startY + " to " + endY);
             foreach (var chunk in _mapChunks)
             {
                 if (chunk.Key.X < startX || chunk.Key.X > endX ||
@@ -112,12 +112,13 @@ namespace HouseGeneration.MapGeneratorRenderer
                     int mapX = chunkCoord.X * ChunkSize + x;
                     int mapY = chunkCoord.Y * ChunkSize + y;
 
-                    if (mapX < map.x && mapY < map.y)
+                    if (mapX < map.x && mapY < map.y && mapX >= 0 && mapY >= 0)
                     {
-                        // Tile tile = map.GetTile(mapX, mapY);
-                        // System.Drawing.Color tileColor = map.TextureTypes[tile.TextureIndex].Color;
+                        Tile tile = map.GetTile(mapX, mapY);
+                        Console.WriteLine("Index: " + tile.TextureIndex + " mapX: " + mapX + " mapY: " + mapY);
+                        System.Drawing.Color tileColor = map.TextureTypes[tile.TextureIndex].Color;
 
-                        System.Drawing.Color tileColor = System.Drawing.Color.FromArgb(random.Next(256), i, 255);
+                        // System.Drawing.Color tileColor = System.Drawing.Color.FromArgb(random.Next(256), i, 255);
                         colorData[y * ChunkSize + x] = new Color(tileColor.R, tileColor.G, tileColor.B);
                     }
                     else
@@ -159,7 +160,7 @@ namespace HouseGeneration.MapGeneratorRenderer
                 position += ScreenSize / 2;
                 position += new Vector2(-1, -1) * ChunkSize;
 
-                DrawText(spriteBatch, chunk.Key.ToString(), new Vector2(position.X + ChunkSize / 2, position.Y + ChunkSize / 2), Color.White);
+                //DrawText(spriteBatch, chunk.Key.ToString(), new Vector2(position.X + ChunkSize / 2, position.Y + ChunkSize / 2), Color.White);
             }
             spriteBatch.End();
 

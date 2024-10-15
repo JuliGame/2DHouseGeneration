@@ -5,6 +5,8 @@ using System;
 using MonoGame.ImGuiNet;
 using Shared.ProceduralGeneration;
 using System.Windows.Forms;
+using System.Threading;
+using System.ComponentModel.Design;
 
 namespace HouseGeneration.MapGeneratorRenderer
 {
@@ -179,12 +181,39 @@ namespace HouseGeneration.MapGeneratorRenderer
             ImGui.Dummy(new System.Numerics.Vector2(gizmoSize * 2, gizmoSize * 2)); // Make space for the gizmo
         }
 
+        private int _seed = 0;
+        Thread mapGenerationThread = null;
         private void GenerateMap()
         {
-            _map = new Map(100, 100); // Example size
-            // Add your map generation logic here
+            _map = new Map(1024, 1024); // Example size
+
+            if (mapGenerationThread != null && mapGenerationThread.IsAlive)            
+                return;           
+
             _isGeneratingMap = false;
-            Console.WriteLine("New map generated!");
+            mapGenerationThread = new Thread(() =>
+            {
+                try 
+                {
+                    _map.Generate(_seed, (string message) => {
+                        Console.WriteLine(message);
+                    });
+                    
+                    mapGenerationThread = null;
+                    Console.WriteLine("New map generated!");
+                }
+                catch (Exception e)
+                {
+                    mapGenerationThread = null;
+                    Console.WriteLine("Map generation thread error: " + e.Message);
+                }
+
+                _seed++;
+            });
+
+
+            mapGenerationThread.Start();
+            Console.WriteLine("Map generation thread started!");
         }
 
         public void MoveCamera(Vector2 delta)
