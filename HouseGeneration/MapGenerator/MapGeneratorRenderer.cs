@@ -62,6 +62,14 @@ namespace HouseGeneration.MapGeneratorRenderer
             Console.SetOut(new CustomConsoleWriter(_consoleManager));
             Console.WriteLine("Console initialized");
 
+            _map = new Map(1024 * 1, 1024 * 1); // Example size
+            _map.Generate(_seed, (string taskName, bool end) => {
+                if (end) {
+                    _taskPerformanceMenu.EndTask(taskName);
+                } else {
+                    _taskPerformanceMenu.StartTask(taskName);
+                }
+            });
             base.Initialize();
         }
 
@@ -110,6 +118,7 @@ namespace HouseGeneration.MapGeneratorRenderer
             base.Draw(gameTime);
         }
 
+        private bool _useCPU = false;
         private void DrawUI()
         {
             ImGuiWindowFlags window_flags = ImGuiWindowFlags.None;
@@ -130,6 +139,8 @@ namespace HouseGeneration.MapGeneratorRenderer
                 _map.MapChanged = true;
                 _mapRenderer.ClearChunks();
             }
+            ImGui.SameLine();
+            ImGui.Checkbox("Use CPU", ref _useCPU);
             
             DrawCameraGizmo();
             DrawCameraPositionGizmo();
@@ -220,7 +231,7 @@ namespace HouseGeneration.MapGeneratorRenderer
                         } else {
                             _taskPerformanceMenu.StartTask(taskName);
                         }
-                    });
+                    }, _useCPU);
                     
                     mapGenerationThread = null;
                     Console.WriteLine("New map generated!");

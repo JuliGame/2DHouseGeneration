@@ -29,7 +29,25 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 foreach (var (timestamp, message) in _consoleMessages)
                 {
-                    ImGui.Text($"[{timestamp:yyyy-MM-dd HH:mm:ss}] {message}");
+                    string fullMessage = $"[{timestamp:yyyy-MM-dd HH:mm:ss}] {message}";
+                    ImGui.Text(fullMessage);
+
+                    // Add hover effect
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.SetTooltip("Click to copy");
+                        ImGui.GetWindowDrawList().AddRectFilled(
+                            ImGui.GetItemRectMin(),
+                            ImGui.GetItemRectMax(),
+                            ImGui.GetColorU32(ImGuiCol.HeaderHovered)
+                        );
+                    }
+
+                    // Handle click to copy
+                    if (ImGui.IsItemClicked())
+                    {
+                        ImGui.SetClipboardText(message);
+                    }
                 }
             }
             catch (Exception e)

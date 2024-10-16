@@ -49,6 +49,10 @@
               "target": "Package",
               "version": "[1.5.1, )"
             },
+            "ILGPU.Algorithms": {
+              "target": "Package",
+              "version": "[1.5.1, )"
+            },
             "MonoGame.Framework.DesktopGL": {
               "suppressParent": "All",
               "target": "Package",

@@ -10,6 +10,7 @@
       "Shared/1.0.0": {
         "dependencies": {
           "ILGPU": "1.5.1",
+          "ILGPU.Algorithms": "1.5.1",
           "MonoGame.Framework.DesktopGL": "3.8.1.303",
           "NETStandard.Library": "2.0.3",
           "Newtonsoft.Json": "13.0.3"
@@ -25,6 +26,17 @@
         },
         "runtime": {
           "lib/net471/ILGPU.dll": {
+            "assemblyVersion": "1.5.1.0",
+            "fileVersion": "1.5.1.0"
+          }
+        }
+      },
+      "ILGPU.Algorithms/1.5.1": {
+        "dependencies": {
+          "ILGPU": "1.5.1"
+        },
+        "runtime": {
+          "lib/net471/ILGPU.Algorithms.dll": {
             "assemblyVersion": "1.5.1.0",
             "fileVersion": "1.5.1.0"
           }
@@ -120,6 +132,13 @@
       "sha512": "sha512-Q4URSxEqH+u0XE3XCtYZ2h3FZgLp9VOOeelvKCmniiTlKft0JNCs13EOqayWVjwvPUbD4w/XaFlP3CdmaRdj8w==",
       "path": "ilgpu/1.5.1",
       "hashPath": "ilgpu.1.5.1.nupkg.sha512"
+    },
+    "ILGPU.Algorithms/1.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-PCoyiLrku1GXWJFU7XNQiTLYmwm5igHpzW6dv+5pBQcm8Ufav0V1jXtnWme/WuE8mlC1fkpHWspEUJdltgrYSg==",
+      "path": "ilgpu.algorithms/1.5.1",
+      "hashPath": "ilgpu.algorithms.1.5.1.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",

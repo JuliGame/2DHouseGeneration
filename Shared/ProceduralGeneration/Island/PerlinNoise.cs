@@ -17,6 +17,7 @@ namespace Shared.ProceduralGeneration.Util
             }
         }
 
+        // CPU PERLIN NOISE
         public double Noise(double x, double y)
         {
             int X = (int)Math.Floor(x) & 255;

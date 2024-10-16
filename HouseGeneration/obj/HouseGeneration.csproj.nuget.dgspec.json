@@ -60,6 +60,10 @@
               "target": "Package",
               "version": "[1.5.1, )"
             },
+            "ILGPU.Algorithms": {
+              "target": "Package",
+              "version": "[1.5.1, )"
+            },
             "Microsoft.DotNet.Watcher.Tools": {
               "target": "Package",
               "version": "[2.0.2, )"
@@ -146,6 +150,10 @@
           "targetAlias": "netstandard2.0",
           "dependencies": {
             "ILGPU": {
+              "target": "Package",
+              "version": "[1.5.1, )"
+            },
+            "ILGPU.Algorithms": {
               "target": "Package",
               "version": "[1.5.1, )"
             },

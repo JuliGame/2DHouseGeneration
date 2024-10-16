@@ -53,6 +53,22 @@
           }
         }
       },
+      "ILGPU.Algorithms/1.5.1": {
+        "type": "package",
+        "dependencies": {
+          "ILGPU": "1.5.1"
+        },
+        "compile": {
+          "lib/net7.0/ILGPU.Algorithms.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/ILGPU.Algorithms.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "ImGui.NET/1.90.1.1": {
         "type": "package",
         "dependencies": {
@@ -691,6 +707,7 @@
         "framework": ".NETStandard,Version=v2.0",
         "dependencies": {
           "ILGPU": "1.5.1",
+          "ILGPU.Algorithms": "1.5.1",
           "Newtonsoft.Json": "13.0.3"
         },
         "compile": {
@@ -815,6 +832,30 @@
         "lib/net7.0/ILGPU.xml",
         "lib/netstandard2.1/ILGPU.dll",
         "lib/netstandard2.1/ILGPU.xml"
+      ]
+    },
+    "ILGPU.Algorithms/1.5.1": {
+      "sha512": "PCoyiLrku1GXWJFU7XNQiTLYmwm5igHpzW6dv+5pBQcm8Ufav0V1jXtnWme/WuE8mlC1fkpHWspEUJdltgrYSg==",
+      "type": "package",
+      "path": "ilgpu.algorithms/1.5.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE-3RD-PARTY.txt",
+        "LICENSE.txt",
+        "ilgpu.algorithms.1.5.1.nupkg.sha512",
+        "ilgpu.algorithms.nuspec",
+        "lib/net471/ILGPU.Algorithms.dll",
+        "lib/net471/ILGPU.Algorithms.pdb",
+        "lib/net471/ILGPU.Algorithms.xml",
+        "lib/net5.0/ILGPU.Algorithms.dll",
+        "lib/net5.0/ILGPU.Algorithms.xml",
+        "lib/net6.0/ILGPU.Algorithms.dll",
+        "lib/net6.0/ILGPU.Algorithms.xml",
+        "lib/net7.0/ILGPU.Algorithms.dll",
+        "lib/net7.0/ILGPU.Algorithms.xml",
+        "lib/netstandard2.1/ILGPU.Algorithms.dll",
+        "lib/netstandard2.1/ILGPU.Algorithms.xml"
       ]
     },
     "ImGui.NET/1.90.1.1": {
@@ -1510,6 +1551,7 @@
     "net8.0-windows7.0": [
       "Accord.Math >= 3.8.2-alpha",
       "ILGPU >= 1.5.1",
+      "ILGPU.Algorithms >= 1.5.1",
       "Microsoft.DotNet.Watcher.Tools >= 2.0.2",
       "MonoGame.Content.Builder.Task >= 3.8.1.303",
       "MonoGame.Framework.DesktopGL >= 3.8.1.303",
@@ -1575,6 +1617,10 @@
             "version": "[3.8.2-alpha, )"
           },
           "ILGPU": {
+            "target": "Package",
+            "version": "[1.5.1, )"
+          },
+          "ILGPU.Algorithms": {
             "target": "Package",
             "version": "[1.5.1, )"
           },

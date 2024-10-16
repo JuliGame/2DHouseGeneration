@@ -48,6 +48,8 @@ namespace Shared.ProceduralGeneration.Island
                 }
             }
 
+            Dictionary<int, Texture> textureCache = new Dictionary<int, Texture>();
+
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -55,11 +57,19 @@ namespace Shared.ProceduralGeneration.Island
                     // Normalize the value to [0, 1] range
                     float normalizedValue = Convert.ToSingle(mask[x, y]) / Convert.ToSingle(maxValue);
                     int grayValue = Math.Max(0, Math.Min(255, (int)(normalizedValue * 255)));
-                    Color color = Color.FromArgb(grayValue, grayValue, grayValue);
-                    Texture debugColor = new Texture("DebugGray", color);
+                    
+                    if (!textureCache.TryGetValue(grayValue, out Texture debugColor))
+                    {
+                        Color color = Color.FromArgb(grayValue, grayValue, grayValue);
+                        debugColor = new Texture("DebugGray", color);
+                        textureCache[grayValue] = debugColor;
+                    }
+                    
                     map.Paint(debugColor, x, y);
                 }
             }
+            
+            map.MapChanged = true;
         }
 
         public static void DebugPaintFloatMaskRGB(Map map, float[,] maskR, float[,] maskG, float[,] maskB)
