@@ -9,6 +9,7 @@ using ILGPU.Runtime;
 using ILGPU;
 using System.Threading.Tasks;
 using System.Reflection.Metadata.Ecma335;
+using Shared.ProceduralGeneration.Island.Cities;
 
 namespace Shared.ProceduralGeneration
 {
@@ -158,57 +159,76 @@ namespace Shared.ProceduralGeneration
             float[,] islandHeightMap = GenerateShape.GenerateIsland(this, seed, useCPU);
             Debug("Heightmap", true);
             
-            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUHeightMap = StartAllocationThread(islandHeightMap);
+            // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUHeightMap = StartAllocationThread(islandHeightMap);
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
             bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
 
-            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUWaterMask = StartAllocationThread(waterMask);
+            // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUWaterMask = StartAllocationThread(waterMask);
 
             Debug("GenerateRivers", false);
             int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
             bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
             Debug("GenerateRivers", true);
+
+            MaskUtils.PaintMask(this, waterMask, new Texture("Water", fromHex("#004c8a")), null);
+
             
-            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPURiverMask = StartAllocationThread(riverMask);
+            // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPURiverMask = StartAllocationThread(riverMask);
 
-            Debug("Weather", false);
-            Debug("Weather-WaitForAllocation", false);
-            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUconvolutedSea = StartConvoluteThread(await GPUWaterMask, 100, false);
-            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUconvolutedRiver = StartConvoluteThread(await GPURiverMask, 50, false);
-            Debug("Weather-WaitForAllocation", true);
+            // Debug("Weather", false);
+            // Debug("Weather-WaitForAllocation", false);
+            // MemoryBuffer1D<float, Stride1D.Dense> GPUWaterMask_RES = await GPUWaterMask;
+            // MemoryBuffer1D<float, Stride1D.Dense> GPURiverMask_RES = await GPURiverMask;
+            // Debug("Weather-WaitForAllocation", true);
+
+            // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUconvolutedSea = StartConvoluteThread(GPUWaterMask_RES, 100, false);
+            // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUconvolutedRiver = StartConvoluteThread(GPURiverMask_RES, 50, false);
 
 
-            Debug("Weather-Humidity", false);
-            float[,] humidityMap = HumidityCalculator.GetHumidity(this, await GPUconvolutedSea, await GPUHeightMap, await GPUconvolutedRiver, riverMask, seed, useCPU);
-            Debug("Weather-Humidity", true);
+            // Debug("Weather-Convolute", false);
+            // MemoryBuffer1D<float, Stride1D.Dense> GPUconvolutedSea_RES = await GPUconvolutedSea;
+            // MemoryBuffer1D<float, Stride1D.Dense> GPUconvolutedRiver_RES = await GPUconvolutedRiver;
+            // Debug("Weather-Convolute", true);
 
-            Debug("Weather-Temperature", false);
-            float[,] temperatureMap = TemperatureCalculator.GetTemperature(this, seed, await GPUHeightMap, useCPU); // .1 a .2 arriba en gpu
-            Debug("Weather-Temperature", true);
-            Debug("Weather", true);
+            // Debug("Weather-Humidity", false);
+            // float[,] humidityMap = HumidityCalculator.GetHumidity(this, GPUconvolutedSea_RES, await GPUHeightMap, GPUconvolutedRiver_RES, riverMask, seed, useCPU);
+            // Debug("Weather-Humidity", true);
 
-            Debug("GenerateBiomes", false);
-            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, GPUtils.Unflatten1DArray(GPUconvolutedSea.Result.GetAsArray1D(), x, y));
-            Debug("GenerateBiomes", true);
+            // Debug("Weather-Temperature", false);
+            // float[,] temperatureMap = TemperatureCalculator.GetTemperature(this, seed, await GPUHeightMap, useCPU); // .1 a .2 arriba en gpu
+            // Debug("Weather-Temperature", true);
+            // Debug("Weather", true);
 
-            Debug("Final Paint", false);
-            for (int i = 0; i < x; i++) {
-                for (int j = 0; j < y; j++) {
-                    Biome biome = biomeMap[i, j];
-                    Color biomColor = BiomeConfigurations[biome].Color;
-                    // float height = Math.Max(0, Math.Min(1, (islandHeightMap[i, j] + .5f)));
-                    // Color mergedColor = Color.FromArgb((int) (biomColor.R * height), (int) (biomColor.G * height), (int) (biomColor.B * height));
-                    Paint(new Texture(biome.ToString(), biomColor), i, j);
-                }
-            }
-            MaskUtils.PaintMask(this, riverMask, new Texture("Water", Color.FromArgb(0, 153, 255)), null);
-            Debug("Final Paint", true);
+            // Debug("GenerateBiomes", false);
+            // Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, GPUtils.Unflatten1DArray(GPUconvolutedSea.Result.GetAsArray1D(), x, y));
+            // Debug("GenerateBiomes", true);
+
+            // Debug("Final Paint", false);
+            // for (int i = 0; i < x; i++) {
+            //     for (int j = 0; j < y; j++) {
+            //         Biome biome = biomeMap[i, j];
+            //         Color biomColor = BiomeConfigurations[biome].Color;
+            //         // float height = Math.Max(0, Math.Min(1, (islandHeightMap[i, j] + .5f)));
+            //         // Color mergedColor = Color.FromArgb((int) (biomColor.R * height), (int) (biomColor.G * height), (int) (biomColor.B * height));
+            //         Paint(new Texture(biome.ToString(), biomColor), i, j);
+            //     }
+            // }
+            MaskUtils.PaintMask(this, riverMask, new Texture("Water", fromHex("#0872c9")), null);
+            // Debug("Final Paint", true);
+            // MapChanged = true;
+
+            // GPUtils.UnloadTextureFromGPU(GPUHeightMap.Result);
+            // GPUtils.UnloadTextureFromGPU(GPUWaterMask.Result);
+            // GPUtils.UnloadTextureFromGPU(GPURiverMask.Result);
+
+            CityGen cityGen = new CityGen(seed);
+            List<CityGen.City> cities = cityGen.GenerateCities(this, landMask);
+
+            VoronoiDiagram voronoiDiagram = new VoronoiDiagram(seed);
+            voronoiDiagram.Generate(this, landMask);
+            voronoiDiagram.PaintCities(this, cities, landMask);
             MapChanged = true;
-
-            GPUtils.UnloadTextureFromGPU(GPUHeightMap.Result);
-            GPUtils.UnloadTextureFromGPU(GPUWaterMask.Result);
-            GPUtils.UnloadTextureFromGPU(GPURiverMask.Result);
         }
 
         public void Paint(Texture texture, int x, int y, string text = null) {

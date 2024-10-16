@@ -51,8 +51,8 @@ namespace HouseGeneration.MapGeneratorRenderer
 
             startX = Math.Max(startX, 0);
             startY = Math.Max(startY, 0);
-            endX = Math.Min(endX, map.x / ChunkSize);
-            endY = Math.Min(endY, map.y / ChunkSize);
+            endX = Math.Min(endX, (map.x - 1) / ChunkSize);
+            endY = Math.Min(endY, (map.y - 1) / ChunkSize);
 
             // Generate or update chunks as needed
 
@@ -164,17 +164,6 @@ namespace HouseGeneration.MapGeneratorRenderer
 
             _basicEffect.World = Matrix.Identity;
             _basicEffect.View = Matrix.Identity;
-
-            // Draw coordinate axes
-            DrawLine(Vector2.Zero, new Vector2(100, 0), Color.Red);  // X-axis
-            DrawLine(Vector2.Zero, new Vector2(0, 100), Color.Green);  // Y-axis
-
-            // Draw camera position and direction
-            Vector2 cameraPos = new Vector2(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);
-            DrawCircle(cameraPos, 5, Color.Yellow);  // Camera position
-            Vector2 directionEnd = cameraPos + new Vector2(MathF.Cos(_camera.Rotation), MathF.Sin(_camera.Rotation)) * 50;
-            DrawLine(cameraPos, directionEnd, Color.Blue);  // Camera direction
-
             // Draw text for chunk coordinates
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, _camera.GetViewMatrix());
             foreach (var chunk in _mapChunks)
@@ -184,7 +173,7 @@ namespace HouseGeneration.MapGeneratorRenderer
                 position += ScreenSize / 2;
                 position += new Vector2(-1, -1) * ChunkSize;
 
-                //DrawText(spriteBatch, chunk.Key.ToString(), new Vector2(position.X + ChunkSize / 2, position.Y + ChunkSize / 2), Color.White);
+                // DrawText(spriteBatch, chunk.Key.ToString(), new Vector2(position.X + ChunkSize / 2, position.Y + ChunkSize / 2), Color.White);
             }
             spriteBatch.End();
 
@@ -228,6 +217,60 @@ namespace HouseGeneration.MapGeneratorRenderer
             Vector2 textSize = _font.MeasureString(text);
             Vector2 textPosition = position - textSize / 2;
             spriteBatch.DrawString(_font, text, textPosition, color);
+        }
+
+        public Texture2D CreateFullMapImage()
+        {
+            if (_mapChunks.Count == 0)
+            {
+                return null;
+            }
+
+            // Calculate the full map size
+            int minX = int.MaxValue, minY = int.MaxValue, maxX = int.MinValue, maxY = int.MinValue;
+            foreach (var chunk in _mapChunks)
+            {
+                minX = Math.Min(minX, chunk.Key.X);
+                minY = Math.Min(minY, chunk.Key.Y);
+                maxX = Math.Max(maxX, chunk.Key.X);
+                maxY = Math.Max(maxY, chunk.Key.Y);
+            }
+
+            int width = (maxX - minX + 1) * ChunkSize;
+            int height = (maxY - minY + 1) * ChunkSize;
+
+            // Create a new Texture2D for the full map
+            Texture2D fullMap = new Texture2D(_graphicsDevice, width, height);
+            Color[] colorData = new Color[width * height];
+
+            // Fill the color data with transparent pixels
+            for (int i = 0; i < colorData.Length; i++)
+            {
+                colorData[i] = Color.Transparent;
+            }
+
+            // Copy chunk data to the full map
+            foreach (var chunk in _mapChunks)
+            {
+                int offsetX = (chunk.Key.X - minX) * ChunkSize;
+                int offsetY = (chunk.Key.Y - minY) * ChunkSize;
+
+                Color[] chunkData = new Color[ChunkSize * ChunkSize];
+                chunk.Value.GetData(chunkData);
+
+                for (int y = 0; y < ChunkSize; y++)
+                {
+                    for (int x = 0; x < ChunkSize; x++)
+                    {
+                        int fullMapIndex = (offsetY + y) * width + (offsetX + x);
+                        int chunkIndex = y * ChunkSize + x;
+                        colorData[fullMapIndex] = chunkData[chunkIndex];
+                    }
+                }
+            }
+
+            fullMap.SetData(colorData);
+            return fullMap;
         }
     }
 }

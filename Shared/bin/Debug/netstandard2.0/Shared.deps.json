@@ -11,6 +11,7 @@
         "dependencies": {
           "ILGPU": "1.5.1",
           "ILGPU.Algorithms": "1.5.1",
+          "MIConvexHull": "1.1.19.1019",
           "MonoGame.Framework.DesktopGL": "3.8.1.303",
           "NETStandard.Library": "2.0.3",
           "Newtonsoft.Json": "13.0.3"
@@ -39,6 +40,14 @@
           "lib/net471/ILGPU.Algorithms.dll": {
             "assemblyVersion": "1.5.1.0",
             "fileVersion": "1.5.1.0"
+          }
+        }
+      },
+      "MIConvexHull/1.1.19.1019": {
+        "runtime": {
+          "lib/netstandard2.0/MIConvexHull.dll": {
+            "assemblyVersion": "1.1.19.1018",
+            "fileVersion": "1.1.19.1018"
           }
         }
       },
@@ -139,6 +148,13 @@
       "sha512": "sha512-PCoyiLrku1GXWJFU7XNQiTLYmwm5igHpzW6dv+5pBQcm8Ufav0V1jXtnWme/WuE8mlC1fkpHWspEUJdltgrYSg==",
       "path": "ilgpu.algorithms/1.5.1",
       "hashPath": "ilgpu.algorithms.1.5.1.nupkg.sha512"
+    },
+    "MIConvexHull/1.1.19.1019": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Qz0BIRVyflj9jMkIKG1tpON5Xz1lFEA9XyRH0Pw5qIsCE75heHF4cHrBr8RqvQJRaaNXH+5jdWAfFP3m3OfTOA==",
+      "path": "miconvexhull/1.1.19.1019",
+      "hashPath": "miconvexhull.1.1.19.1019.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",

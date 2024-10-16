@@ -95,14 +95,6 @@ namespace Shared.ProceduralGeneration.Island
             while (startPoint.x >= 0 && startPoint.x < map.x && startPoint.y >= 0 && startPoint.y < map.y && !waterMask[(int) startPoint.x, (int) startPoint.y]) {
                 startPoint.x += direction.x;
                 startPoint.y += direction.y;
-                if (startPoint.x >= 0 && startPoint.x < map.x && startPoint.y >= 0 && startPoint.y < map.y) {
-                    if (riverMask[(int)startPoint.x, (int)startPoint.y]) {
-                        // If we hit an existing river, terminate
-                        // return new bool[map.x, map.y];
-                    }
-                } else {
-                    break;
-                }
             }
 
             // flip the direction vector

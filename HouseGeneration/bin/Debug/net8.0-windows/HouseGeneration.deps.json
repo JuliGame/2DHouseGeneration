@@ -105,6 +105,14 @@
           }
         }
       },
+      "MIConvexHull/1.1.19.1019": {
+        "runtime": {
+          "lib/netstandard2.0/MIConvexHull.dll": {
+            "assemblyVersion": "1.1.19.1018",
+            "fileVersion": "1.1.19.1018"
+          }
+        }
+      },
       "Microsoft.DotNet.Watcher.Tools/2.0.2": {
         "dependencies": {
           "Microsoft.NETCore.App": "2.0.7"
@@ -227,6 +235,7 @@
         "dependencies": {
           "ILGPU": "1.5.1",
           "ILGPU.Algorithms": "1.5.1",
+          "MIConvexHull": "1.1.19.1019",
           "Newtonsoft.Json": "13.0.3"
         },
         "runtime": {
@@ -278,6 +287,13 @@
       "sha512": "sha512-/VNgkRywtXV72cpxtBj09nZX9Yx+xG3NxiwEEXPVcK+pHKHA31cPJKy425tDGj68tgRbCS+C+DG8puBj3iJ4zA==",
       "path": "imgui.net/1.90.1.1",
       "hashPath": "imgui.net.1.90.1.1.nupkg.sha512"
+    },
+    "MIConvexHull/1.1.19.1019": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Qz0BIRVyflj9jMkIKG1tpON5Xz1lFEA9XyRH0Pw5qIsCE75heHF4cHrBr8RqvQJRaaNXH+5jdWAfFP3m3OfTOA==",
+      "path": "miconvexhull/1.1.19.1019",
+      "hashPath": "miconvexhull.1.1.19.1019.nupkg.sha512"
     },
     "Microsoft.DotNet.Watcher.Tools/2.0.2": {
       "type": "package",

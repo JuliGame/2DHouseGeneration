@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.ComponentModel.Design;
 using HouseGeneration.UI;
+using System.IO;
 
 namespace HouseGeneration.MapGeneratorRenderer
 {
@@ -26,6 +27,8 @@ namespace HouseGeneration.MapGeneratorRenderer
         private Map _map;
         private bool _isGeneratingMap = false;
         private Random _random = new Random();
+
+        private Keys[] _previousPressedKeys;
 
         public MapGeneratorRenderer()
         {
@@ -141,18 +144,21 @@ namespace HouseGeneration.MapGeneratorRenderer
             }
             ImGui.SameLine();
             ImGui.Checkbox("Use CPU", ref _useCPU);
+
+            ImGui.SetNextItemWidth(100);
             
-            DrawCameraGizmo();
-            DrawCameraPositionGizmo();
+            if (ImGui.InputInt("Seed", ref _seed))
+            {
+                // Ensure seed is non-negative
+                _seed = Math.Max(0, _seed);
+            }
+            ImGui.SameLine();
+            ImGui.Checkbox("Increment seed", ref _incrementSeed);
 
-            ImGui.End();
-        }
-
-        private void DrawCameraGizmo()
-        {
+            ImGui.Spacing();
+            
+            // Camera position    
             ImGui.Text("Camera Controls");
-            
-            // Camera position
             System.Numerics.Vector2 cameraPos = new System.Numerics.Vector2(_camera.Position.X, _camera.Position.Y);
             if (ImGui.DragFloat2("Position", ref cameraPos, 1f, float.MinValue, float.MaxValue, "%.1f"))
             {
@@ -172,48 +178,14 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 _camera.Rotate(rotation - _camera.Rotation);
             }
-
-            // Reset camera button
-            if (ImGui.Button("Reset Camera"))
-            {
-                _camera.Position = Vector2.Zero;
-                _camera.SetZoom(1f);
-                _camera.Rotate(-_camera.Rotation);
-            }
+            ImGui.End();
         }
 
-        private void DrawCameraPositionGizmo()
-        {
-            ImGui.Text("Camera Position Gizmo");
-            
-            Vector2 gizmoCenter = new Vector2(100, 100);
-            float gizmoSize = 80;
-            float zoomFactor = 0.1f;
-
-            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-            Vector2 screenPos = ImGui.GetCursorScreenPos();
-
-            // Draw background circle
-            drawList.AddCircleFilled(new System.Numerics.Vector2(screenPos.X + gizmoCenter.X, screenPos.Y + gizmoCenter.Y), gizmoSize, ImGui.ColorConvertFloat4ToU32(new System.Numerics.Vector4(0.2f, 0.2f, 0.2f, 1f)));
-
-            // Draw camera position
-            System.Numerics.Vector2 cameraPos = new System.Numerics.Vector2(_camera.Position.X, _camera.Position.Y) * zoomFactor;
-            System.Numerics.Vector2 gizmoPos = new System.Numerics.Vector2(screenPos.X + gizmoCenter.X, screenPos.Y + gizmoCenter.Y) + cameraPos;
-            drawList.AddCircleFilled(gizmoPos, 5, ImGui.ColorConvertFloat4ToU32(new System.Numerics.Vector4(1f, 0.5f, 0, 1f)));
-
-            // Draw camera direction
-            System.Numerics.Vector2 directionEnd = gizmoPos + new System.Numerics.Vector2(MathF.Cos(_camera.Rotation), MathF.Sin(_camera.Rotation)) * 20;
-            drawList.AddLine(gizmoPos, directionEnd, ImGui.ColorConvertFloat4ToU32(new System.Numerics.Vector4(0, 1f, 0, 1f)), 2);
-
-            // Draw zoom indicator
-            float zoomIndicatorSize = gizmoSize * (_camera.Zoom / 5f); // Adjust the divisor to change the scale
-            drawList.AddCircle(new System.Numerics.Vector2(screenPos.X + gizmoCenter.X, screenPos.Y + gizmoCenter.Y), zoomIndicatorSize, ImGui.ColorConvertFloat4ToU32(new System.Numerics.Vector4(0, 0.5f, 1f, 1f)));
-
-            ImGui.Dummy(new System.Numerics.Vector2(gizmoSize * 2, gizmoSize * 2)); // Make space for the gizmo
-        }
 
         private int _seed = 0;
         Thread mapGenerationThread = null;
+        private bool _incrementSeed;
+
         private void GenerateMap()
         {
             if (mapGenerationThread != null && mapGenerationThread.IsAlive)            
@@ -224,7 +196,7 @@ namespace HouseGeneration.MapGeneratorRenderer
             {
                 try 
                 {
-                    _map = new Map(1024 * 3, 1024 * 3); // Example size
+                    _map = new Map((int) (1024 * 1f), (int) (1024 * 1f)); // Example size
                     _map.Generate(_seed, (string taskName, bool end) => {
                         if (end) {
                             _taskPerformanceMenu.EndTask(taskName);
@@ -235,14 +207,15 @@ namespace HouseGeneration.MapGeneratorRenderer
                     
                     mapGenerationThread = null;
                     Console.WriteLine("New map generated!");
+                    if (_incrementSeed) {
+                        _seed++;
+                    }
                 }
                 catch (Exception e)
                 {
                     mapGenerationThread = null;
                     Console.WriteLine("Map generation thread error: " + e.Message);
                 }
-
-                _seed++;
             });
 
             mapGenerationThread.Start();
@@ -257,6 +230,26 @@ namespace HouseGeneration.MapGeneratorRenderer
         public void ZoomCamera(float zoomDelta)
         {
             _camera.AdjustZoom(zoomDelta);
+        }
+
+        public void CopyMapToClipboard()
+        {
+            Texture2D mapImage = _mapRenderer.CreateFullMapImage();
+            if (mapImage != null)
+            {
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    mapImage.SaveAsPng(stream, mapImage.Width, mapImage.Height);
+                    stream.Seek(0, SeekOrigin.Begin);
+                    System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(stream);
+                    System.Windows.Forms.Clipboard.SetImage(bitmap);
+                }
+                Console.WriteLine("Map copied to clipboard as PNG.");
+            }
+            else
+            {
+                Console.WriteLine("Failed to copy map to clipboard. No chunks loaded.");
+            }
         }
     }
 }

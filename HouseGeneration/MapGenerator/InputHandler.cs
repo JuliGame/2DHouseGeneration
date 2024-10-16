@@ -39,6 +39,17 @@ namespace HouseGeneration.MapGeneratorRenderer
             }
 
             _previousMouseState = mouseState;
+
+
+            // Handle Ctrl+C for copying map to clipboard
+            if (keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl))
+            {
+                if (keyboardState.IsKeyDown(Keys.C))
+                {
+                    // Call the CopyMapToClipboard method in the MapGeneratorRenderer
+                    _game.CopyMapToClipboard();
+                }
+            }
         }
     }
 }
