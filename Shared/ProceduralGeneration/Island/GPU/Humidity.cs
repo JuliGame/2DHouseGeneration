@@ -6,7 +6,7 @@ namespace Shared.ProceduralGeneration.Island
 {
     public static class HumidityCalculator
     {
-        public static float[,] GetHumidity(Map map, MemoryBuffer1D<float, Stride1D.Dense> humidityMapSea, MemoryBuffer1D<float, Stride1D.Dense> heightMap, MemoryBuffer1D<float, Stride1D.Dense> riverMask, int seed)
+        public static float[,] GetHumidity(Map map, MemoryBuffer1D<float, Stride1D.Dense> humidityMapSea, MemoryBuffer1D<float, Stride1D.Dense> heightMap, MemoryBuffer1D<float, Stride1D.Dense> riverMask, bool[,] riverMaskBool, int seed, bool useCPU)
         {
             int width = map.x;
             int height = map.y;
@@ -16,6 +16,10 @@ namespace Shared.ProceduralGeneration.Island
 
             try
             {
+                if (useCPU) {
+                    return CPUHumidity.GetHumidity(map, GPUtils.Unflatten1DArray(humidityMapSea.GetAsArray1D(), width, height), GPUtils.Unflatten1DArray(heightMap.GetAsArray1D(), width, height), riverMaskBool, seed);
+                }
+
                 using (var gpuHumidityMap = GPUtils.accelerator.Allocate1D<float>(width * height))
                 {
                     var humidityKernel = GPUtils.accelerator.LoadAutoGroupedStreamKernel<
@@ -51,13 +55,11 @@ namespace Shared.ProceduralGeneration.Island
 
             int i = y * width + x;
 
-            // Perform the humidity calculations here
-            float humidityMapRiver = Convolution1D(riverMask, width, height, x, y, 200);
-            float humidity = (humidityMapRiver + humidityMapSea[i]) * 1.5f;
-            humidity = Math.Min(humidity, 1f);
-            humidity += heightMap[i] * 0.7f;
-
-            output[i] = Math.Min(humidity, 1f);
+            float river = riverMask[i] * 2f;
+            float sea = humidityMapSea[i] * 1f;
+            float humidity = (river + sea * .15f);
+            float h = heightMap[i] * 0.35f;
+            output[i] = humidity + h;
         }
 
         private static float Convolution1D(ArrayView<float> input, int width, int height, int x, int y, int kernelSize)

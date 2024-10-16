@@ -7,7 +7,7 @@ namespace Shared.ProceduralGeneration.Island
 {
     public static class TemperatureCalculator
     {
-        public static float[,] GetTemperature(Map map, int seed, MemoryBuffer1D<float, Stride1D.Dense> gpuHeightmap)
+        public static float[,] GetTemperature(Map map, int seed, MemoryBuffer1D<float, Stride1D.Dense> gpuHeightmap, bool useCPU)
         {
             int width = map.x;
             int height = map.y;
@@ -15,6 +15,10 @@ namespace Shared.ProceduralGeneration.Island
 
             try
             {
+                if (useCPU) {
+                    return GetTemperatureCPU(map, seed, GPUtils.Unflatten1DArray(gpuHeightmap.GetAsArray1D(), width, height));
+                }
+
                 Console.WriteLine("Starting GPU temperature generation...");
 
                 using (var gpuNoiseMap = GPUtils.accelerator.Allocate1D<float>(width * height))
@@ -79,8 +83,40 @@ namespace Shared.ProceduralGeneration.Island
             int y = index / width;
 
             float noise = FractalNoise(x, y, seed, 6, 2.0f, 0.5f);
-            
-            temperatureMap[index] = noise * heightmap[index];
+
+            float heightInfluence = heightmap[index] > .5f ? 1f : heightmap[index];
+            float noiseInfluence = 1 - heightInfluence;
+
+            // Simple blur for noise influence
+            float blurredNoiseInfluence = noiseInfluence;
+            int blurRadius = 10;
+            int count = 1;
+
+            if (heightmap[index] > .4f) {
+                for (int offsetY = -blurRadius; offsetY <= blurRadius; offsetY++)
+                {
+                    for (int offsetX = -blurRadius; offsetX <= blurRadius; offsetX++)
+                    {
+                        if (offsetX == 0 && offsetY == 0) continue;
+
+                        int neighborX = x + offsetX;
+                        int neighborY = y + offsetY;
+
+                        if (neighborX >= 0 && neighborX < width && neighborY >= 0 && neighborY < height)
+                        {
+                            int neighborIndex = neighborY * width + neighborX;
+                            float neighborHeightInfluence = heightmap[neighborIndex] > .5f ? 1f : heightmap[neighborIndex];
+                            float neighborNoiseInfluence = 1 - neighborHeightInfluence;
+                            blurredNoiseInfluence += neighborNoiseInfluence;
+                            count++;
+                        }
+                    }
+                }
+
+                blurredNoiseInfluence /= count;
+            }
+
+            temperatureMap[index] = noise * blurredNoiseInfluence;
         }
 
         private static float SimplifiedNoise(int x, int y, int seed)

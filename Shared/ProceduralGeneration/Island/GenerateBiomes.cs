@@ -31,7 +31,7 @@ namespace Shared.ProceduralGeneration.Island
                 { Biome.Grassland, new BiomeConfig(new Vector4(0.5f, 0.4f, 0.3f, .5f), Color.FromArgb(0, 150, 0)) },
                 { Biome.Forest, new BiomeConfig(new Vector4(0.5f, 0.35f, 0.7f, .5f), Color.FromArgb(0, 100, 0)) },
                 { Biome.Mountains, new BiomeConfig(new Vector4(1f, 0.4f, 0.4f, .4f), Color.FromArgb(100, 100, 100)) },
-                { Biome.Ice_mountains, new BiomeConfig(new Vector4(1f, 0f, 0.6f, .4f), Color.FromArgb(100, 100, 200)) },
+                { Biome.Ice_mountains, new BiomeConfig(new Vector4(1f, 0.3f, 0.4f, .4f), Color.FromArgb(100, 100, 200)) },
                 { Biome.Snow, new BiomeConfig(new Vector4(0.5f, .1f, 0.3f, .5f), Color.FromArgb(250, 250, 250)) },
             };
         }

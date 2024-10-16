@@ -48,6 +48,8 @@ namespace Shared.ProceduralGeneration.Island
                 }
             }
 
+            Console.WriteLine("Max value: " + maxValue);
+
             Dictionary<int, Texture> textureCache = new Dictionary<int, Texture>();
 
             for (int x = 0; x < width; x++)

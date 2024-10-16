@@ -8,28 +8,21 @@ namespace Shared.ProceduralGeneration.Island
 {
     public static class ConvolutionUtil
     {   
-
-        public static MemoryBuffer1D<float, Stride1D.Dense> Convolution(MemoryBuffer1D<float, Stride1D.Dense> input, int kernelSize)
+        public static MemoryBuffer1D<float, Stride1D.Dense> Blur(MemoryBuffer1D<float, Stride1D.Dense> input, int kernelSize)
         {
+            // Circular blur
             int length = (int)input.Length;
             int width = (int)Math.Sqrt(length);
             int height = width;
 
-            // Create Gaussian kernel
-            float[] kernel = CreateGaussianKernel(kernelSize);
-            
             try
             {
-                // Allocate memory for the kernel and output on the GPU
-                var gpuKernel = GPUtils.accelerator.Allocate1D(kernel);
                 var gpuOutput = GPUtils.accelerator.Allocate1D<float>(length);
 
-                // Compile and load the kernel
-                var convolutionKernel = GPUtils.accelerator.LoadAutoGroupedStreamKernel<
-                    Index2D, ArrayView<float>, ArrayView<float>, ArrayView<float>, int, int, int>(ConvolutionKernel);
+                var circularBlurKernel = GPUtils.accelerator.LoadAutoGroupedStreamKernel<
+                    Index2D, ArrayView<float>, ArrayView<float>, int, int, int>(CircularBlurKernel);
 
-                // Launch the kernel
-                convolutionKernel(new Index2D(width, height), input.View, gpuKernel.View, gpuOutput.View, width, height, kernelSize);
+                circularBlurKernel(new Index2D(width, height), input.View, gpuOutput.View, width, height, kernelSize);
                 GPUtils.accelerator.Synchronize();
 
                 return gpuOutput;
@@ -42,10 +35,79 @@ namespace Shared.ProceduralGeneration.Island
             }
         }
 
-        private static void ConvolutionKernel(
+        private static void CircularBlurKernel(
             Index2D index,
             ArrayView<float> input,
-            ArrayView<float> kernel,
+            ArrayView<float> output,
+            int width,
+            int height,
+            int kernelSize)
+        {
+            int x = index.X;
+            int y = index.Y;
+            int radius = kernelSize / 2;
+
+            if (x >= width || y >= height)
+                return;
+
+            float sum = 0;
+            int count = 0;
+
+            for (int ky = -radius; ky <= radius; ky++)
+            {
+                for (int kx = -radius; kx <= radius; kx++)
+                {
+                    // Check if the point is within the circular kernel
+                    if (kx * kx + ky * ky <= radius * radius)
+                    {
+                        int sampleX = x + kx;
+                        int sampleY = y + ky;
+
+                        // Check if the sample is within the image bounds
+                        if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height)
+                        {
+                            sum += input[sampleY * width + sampleX];
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            output[y * width + x] = count > 0 ? sum / count : 0;
+        }
+
+        public static MemoryBuffer1D<float, Stride1D.Dense> SquareBlur(MemoryBuffer1D<float, Stride1D.Dense> input, int kernelSize)
+        {
+            int length = (int)input.Length;
+            int width = (int)Math.Sqrt(length);
+            int height = width;
+
+            try
+            {
+                // Allocate memory for the output on the GPU
+                var gpuOutput = GPUtils.accelerator.Allocate1D<float>(length);
+
+                // Compile and load the kernel
+                var convolutionKernel = GPUtils.accelerator.LoadAutoGroupedStreamKernel<
+                    Index2D, ArrayView<float>, ArrayView<float>, int, int, int>(SquareKernel);
+
+                // Launch the kernel
+                convolutionKernel(new Index2D(width, height), input.View, gpuOutput.View, width, height, kernelSize);
+                GPUtils.accelerator.Synchronize();
+
+                return gpuOutput;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GPU execution: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        private static void SquareKernel(
+            Index2D index,
+            ArrayView<float> input,
             ArrayView<float> output,
             int width,
             int height,
@@ -59,7 +121,7 @@ namespace Shared.ProceduralGeneration.Island
                 return;
 
             float sum = 0;
-            float weightSum = 0;
+            int count = 0;
 
             for (int ky = -halfKernel; ky <= halfKernel; ky++)
             {
@@ -68,17 +130,16 @@ namespace Shared.ProceduralGeneration.Island
                     int sampleX = x + kx;
                     int sampleY = y + ky;
 
+                    // Check if the sample is within the image bounds
                     if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height)
                     {
-                        int kernelIndex = (ky + halfKernel) * kernelSize + (kx + halfKernel);
-                        float kernelValue = kernel[kernelIndex];
-                        sum += input[sampleY * width + sampleX] * kernelValue;
-                        weightSum += kernelValue;
+                        sum += input[sampleY * width + sampleX];
+                        count++;
                     }
                 }
             }
 
-            output[y * width + x] = weightSum > 0 ? sum / weightSum : 0;
+            output[y * width + x] = count > 0 ? sum / count : 0;
         }
 
         private static float[] CreateGaussianKernel(int size)

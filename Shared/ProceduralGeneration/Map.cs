@@ -80,6 +80,34 @@ namespace Shared.ProceduralGeneration
             return x * y;
         }
 
+        public Task<MemoryBuffer1D<float, Stride1D.Dense>> StartConvoluteThread(MemoryBuffer1D<float, Stride1D.Dense> map, int size, bool fast)
+        {
+            var tcs = new TaskCompletionSource<MemoryBuffer1D<float, Stride1D.Dense>>();
+            
+            Thread thread = new Thread(() =>
+            {
+                try
+                {
+                    Console.WriteLine("Convoluting");
+                    if (fast) {
+                        var result = ConvolutionUtil.SquareBlur(map, size);
+                        tcs.SetResult(result);
+                    } else {
+                        var result = ConvolutionUtil.Blur(map, size);
+                        tcs.SetResult(result);
+                    }
+                    Console.WriteLine("Convoluted");
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            });
+            
+            thread.Start();
+            return tcs.Task;
+        }
+
         public Task<MemoryBuffer1D<float, Stride1D.Dense>> StartAllocationThread(float[,] map)
         {
             var tcs = new TaskCompletionSource<MemoryBuffer1D<float, Stride1D.Dense>>();
@@ -144,26 +172,24 @@ namespace Shared.ProceduralGeneration
             
             Task<MemoryBuffer1D<float, Stride1D.Dense>> GPURiverMask = StartAllocationThread(riverMask);
 
-
             Debug("Weather", false);
-            Debug("Weather-Convolution", false);
-            MemoryBuffer1D<float, Stride1D.Dense> convolutedSeaMap = ConvolutionUtil.Convolution(await GPUWaterMask, 10);
-            Debug("Weather-Convolution", true);
+            Debug("Weather-WaitForAllocation", false);
+            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUconvolutedSea = StartConvoluteThread(await GPUWaterMask, 100, false);
+            Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUconvolutedRiver = StartConvoluteThread(await GPURiverMask, 50, false);
+            Debug("Weather-WaitForAllocation", true);
+
 
             Debug("Weather-Humidity", false);
-            float[,] humidityMap = HumidityCalculator.GetHumidity(this, convolutedSeaMap, await GPUHeightMap, await GPURiverMask, seed);
+            float[,] humidityMap = HumidityCalculator.GetHumidity(this, await GPUconvolutedSea, await GPUHeightMap, await GPUconvolutedRiver, riverMask, seed, useCPU);
             Debug("Weather-Humidity", true);
-            // MaskUtils.DebugPaintFloatMask(this, humidityMap);;
 
             Debug("Weather-Temperature", false);
-            float[,] temperatureMap = TemperatureCalculator.GetTemperature(this, seed, await GPUHeightMap);
+            float[,] temperatureMap = TemperatureCalculator.GetTemperature(this, seed, await GPUHeightMap, useCPU); // .1 a .2 arriba en gpu
             Debug("Weather-Temperature", true);
             Debug("Weather", true);
 
-            // MaskUtils.DebugPaintFloatMask(this, temperatureMap);
-
             Debug("GenerateBiomes", false);
-            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, GPUtils.Unflatten1DArray(convolutedSeaMap.GetAsArray1D(), x, y));
+            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, GPUtils.Unflatten1DArray(GPUconvolutedSea.Result.GetAsArray1D(), x, y));
             Debug("GenerateBiomes", true);
 
             Debug("Final Paint", false);
