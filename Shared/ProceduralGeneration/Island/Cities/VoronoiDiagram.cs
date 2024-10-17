@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using MIConvexHull;
 
 namespace Shared.ProceduralGeneration.Island.Cities
@@ -36,31 +37,45 @@ namespace Shared.ProceduralGeneration.Island.Cities
                 cellColors[i] = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
             }
 
-            // Paint each pixel with the color of its corresponding Voronoi cell
-            // for (int x = 0; x < width; x++)
-            // {
-            //     for (int y = 0; y < height; y++)
-            //     {
-            //         if (landMask[x, y])
-            //         {
-            //             int closestPointIndex = FindClosestPointIndex(x, y, points);
-            //             Color cellColor = cellColors[closestPointIndex];
-            //             map.Paint(new Util.Texture("Voronoi", cellColor), x, y);
-            //         }
-            //     }
-            // }
-
-            // PaintVoronoiCellsInRadius(map, new Point(width / 2, height / 2), 100, Color.Red);
-            //PaintCell(map, 500, Color.Red);
             Console.WriteLine("Done");
         }
 
         public void PaintCities(Map map, List<CityGen.City> cities, bool[,] landMask) {
             foreach (var city in cities) {
+                List<Vector2> paintedPoints = new List<Vector2>();
+                bool[,] boolPoints = new bool[map.x, map.y];
+
                 foreach (var position in city.Position) {
-                    PaintVoronoiCellsInRadius(map, new Point((int)position.Position.X, (int)position.Position.Y), position.Radius, city.Color, landMask);
+                    PaintVoronoiCellsInRadius(map, new Point((int)position.Position.X, (int)position.Position.Y), position.Radius, city.Color, landMask, paintedPoints, boolPoints);
+                    // foreach (var point in paintedPoints) {
+                    //     map.Paint(new Util.Texture("Voronoi", city.Color), (int)point.X, (int)point.Y);
+                    // }
+                }
+                List<Vector2> edges = GetEdges(paintedPoints, boolPoints);
+                foreach (var edge in edges) {
+                    map.Paint(new Util.Texture("Voronoi", city.Color), (int)edge.X, (int)edge.Y);
+                }
+                city.Edges = edges;
+                city.Points = paintedPoints;
+            }
+        }
+
+        public List<Vector2> GetEdges(List<Vector2> points, bool[,] boolPoints) {
+            List<Vector2> edges = new List<Vector2>();
+
+            // return poits that have no neighbors
+            foreach (var point in points) {
+                bool isUpperPainted = boolPoints[(int)point.X, (int)point.Y + 1];
+                bool isLowerPainted = boolPoints[(int)point.X, (int)point.Y - 1];
+                bool isLeftPainted = boolPoints[(int)point.X - 1, (int)point.Y];
+                bool isRightPainted = boolPoints[(int)point.X + 1, (int)point.Y];
+
+                if (!isUpperPainted || !isLowerPainted || !isLeftPainted || !isRightPainted) {
+                    edges.Add(point);
                 }
             }
+
+            return edges;
         }
 
         private List<double[]> GenerateRandomPoints(int width, int height, int amount, bool[,] landMask)
@@ -103,7 +118,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
             return closestIndex;
         }
 
-        public void PaintVoronoiCellsInRadius(Map map, Point center, int radius, Color color, bool[,] landMask)
+        public void PaintVoronoiCellsInRadius(Map map, Point center, int radius, Color color, bool[,] landMask, List<Vector2> paintedPoints, bool[,] boolPoints)
         {
             int width = map.x;
             int height = map.y;
@@ -127,7 +142,8 @@ namespace Shared.ProceduralGeneration.Island.Cities
                         int cellIndex = FindClosestPointIndex(x, y, points);
                         if (!paintedCells.Contains(cellIndex))
                         {
-                            PaintCell(map, cellIndex, color, landMask);
+                            List<Vector2> cellPaintedPoints = PaintCell(map, cellIndex, color, landMask, boolPoints);
+                            paintedPoints.AddRange(cellPaintedPoints);
                             paintedCells.Add(cellIndex);
                         }
                     }
@@ -142,7 +158,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
             return dx * dx + dy * dy <= radius * radius;
         }
 
-        private void PaintCell(Map map, int cellIndex, Color color, bool[,] landMask)
+        private List<Vector2> PaintCell(Map map, int cellIndex, Color color, bool[,] landMask, bool[,] edges)
         {
             int width = map.x;
             int height = map.y;
@@ -153,6 +169,8 @@ namespace Shared.ProceduralGeneration.Island.Cities
             // Find a starting point for the cell
             Point start = FindCellStartPoint(cellIndex, width, height);
             queue.Enqueue(start);
+
+            List<Vector2> paintedPoints = new List<Vector2>();
 
             while (queue.Count > 0)
             {
@@ -167,14 +185,16 @@ namespace Shared.ProceduralGeneration.Island.Cities
                     continue;
 
                 visited[x, y] = true;
-                map.Paint(new Util.Texture("Voronoi", color), x, y);
-
+                paintedPoints.Add(new Vector2(x, y));
+                edges[x, y] = true;
                 // Add neighboring pixels to the queue
                 queue.Enqueue(new Point(x + 1, y));
                 queue.Enqueue(new Point(x - 1, y));
                 queue.Enqueue(new Point(x, y + 1));
                 queue.Enqueue(new Point(x, y - 1));
             }
+
+            return paintedPoints;
         }
 
         private Point FindCellStartPoint(int cellIndex, int width, int height)

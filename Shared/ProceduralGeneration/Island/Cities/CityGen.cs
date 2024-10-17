@@ -24,13 +24,15 @@ namespace Shared.ProceduralGeneration.Island.Cities
             public List<CityNode> Position;
             public bool IsCapital;
             public Color Color;
+            public List<Vector2> Points;
+            public List<Vector2> Edges;
         }
         public List<City> GenerateCities(Map map, bool[,] landMask) {
             List<City> cities = new List<City>();
             // Capitals
             for (int i = 0; i < 2; i++) {
                 Vector2 point = GetPointOnShore(landMask);
-                cities.Add(new City { Position = new List<CityNode> { new CityNode { Position = point, Radius = 75 } }, IsCapital = true });
+                cities.Add(new City { Position = new List<CityNode> { new CityNode { Position = point, Radius = 125 } }, IsCapital = true });
             }
 
             // small cities
