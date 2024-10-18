@@ -124,6 +124,10 @@ namespace Shared.ProceduralGeneration.Island.Cities
             foreach (var c in connections) {
                 // Vector2 start = c.Item1.PossibleEntryPoints[random.Next(c.Item1.PossibleEntryPoints.Count)];
                 // Vector2 end = c.Item2.PossibleEntryPoints[random.Next(c.Item2.PossibleEntryPoints.Count)];
+                if (c.Item1.PossibleEntryPoints.Count == 0 || c.Item2.PossibleEntryPoints.Count == 0) {
+                    continue;
+                }
+                
                 (Vector2, Vector2) entryPoints = GetClosetsEntryPoints(c.Item1, c.Item2);
                 Vector2 start = entryPoints.Item1;
                 Vector2 end = entryPoints.Item2;

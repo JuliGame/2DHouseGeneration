@@ -74,7 +74,7 @@ namespace HouseGeneration.MapGeneratorRenderer
                     } else {
                         _taskPerformanceMenu.StartTask(taskName);
                     }
-                });
+                }, _useCPU);
             });
             mapGeneratorThread.Start();
 

@@ -722,6 +722,7 @@
           "ILGPU": "1.5.1",
           "ILGPU.Algorithms": "1.5.1",
           "MIConvexHull": "1.1.19.1019",
+          "MonoGame.Framework.DesktopGL": "3.8.1.303",
           "Newtonsoft.Json": "13.0.3"
         },
         "compile": {
