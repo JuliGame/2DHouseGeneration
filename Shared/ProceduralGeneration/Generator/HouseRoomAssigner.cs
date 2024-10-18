@@ -59,7 +59,6 @@ public class HouseRoomAssigner
         if (_placedRooms == null || _placedRooms.Count == 0)
             return null;
 
-        Console.Out.WriteLine("placedRooms.Count = {0}", _placedRooms.Count);
         TryToPlaceRoom(new AbstractRoom(RoomType.Garage, 20, .3f, true), roomInfos);
         TryToPlaceRoom(new AbstractRoom(RoomType.Storage, 15, .3f, true, null , new [] { RoomType.Garage}), roomInfos);
         TryToPlaceRoom(new AbstractRoom(RoomType.Machines, 3, 0f, false, 6, 0f, null, new [] { RoomType.Garage, RoomType.Storage }), roomInfos);

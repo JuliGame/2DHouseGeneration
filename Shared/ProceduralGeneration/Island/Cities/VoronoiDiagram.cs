@@ -50,7 +50,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
                 }
                 List<Vector2> edges = GetEdges(paintedPoints, boolPoints);
                 foreach (var edge in edges) {
-                    map.Paint(new Util.Texture("Voronoi", city.Color), (int)edge.X, (int)edge.Y);
+                    // map.Paint(new Util.Texture("Voronoi", city.Color), (int)edge.X, (int)edge.Y);
                 }
                 city.Edges = edges;
                 city.Points = paintedPoints.Distinct().ToList();

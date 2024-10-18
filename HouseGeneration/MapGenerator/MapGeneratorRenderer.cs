@@ -66,13 +66,19 @@ namespace HouseGeneration.MapGeneratorRenderer
             Console.WriteLine("Console initialized");
 
             _map = new Map(1024 * 1, 1024 * 1); // Example size
-            _map.Generate(_seed, (string taskName, bool end) => {
-                if (end) {
-                    _taskPerformanceMenu.EndTask(taskName);
-                } else {
-                    _taskPerformanceMenu.StartTask(taskName);
-                }
+
+            Thread mapGeneratorThread = new Thread(() => {             
+                _map.Generate(_seed, (string taskName, bool end) => {
+                    if (end) {
+                        _taskPerformanceMenu.EndTask(taskName);
+                    } else {
+                        _taskPerformanceMenu.StartTask(taskName);
+                    }
+                });
             });
+            mapGeneratorThread.Start();
+
+
             base.Initialize();
         }
 

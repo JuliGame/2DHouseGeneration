@@ -17,22 +17,36 @@ public class HouseGenerator {
         private Room[,] _tileRooms;
         private Room _livingRoom;
         private Map _map;
-        public HouseBuilder(Map map, PolygonGenerator.TileInfo[,] tiles, int margin) {
-            _tileGrid = new int[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
-            for (int x = -this._margin; x < _tileGrid.GetLength(0) - margin; x++) {
-                for (int y = -this._margin; y < _tileGrid.GetLength(1) - margin; y++) {
+
+        public int Xmin, Xmax, Ymin, Ymax;
+        private int _marginLeft, _marginRight, _marginTop, _marginBottom;
+        public HouseBuilder(Map map, PolygonGenerator.TileInfo[,] tiles, int marginLeft, int marginRight, int marginTop, int marginBottom, int Xmin, int Xmax, int Ymin, int Ymax) {
+            this.Xmin = Xmin;
+            this.Xmax = Xmax;
+            this.Ymin = Ymin;
+            this.Ymax = Ymax;
+
+            int totalWidth = tiles.GetLength(0) + marginLeft + marginRight;
+            int totalHeight = tiles.GetLength(1) + marginTop + marginBottom;
+
+            _tileGrid = new int[totalWidth, totalHeight];
+            for (int x = -marginLeft; x < tiles.GetLength(0) + marginRight; x++) {
+                for (int y = -marginTop; y < tiles.GetLength(1) + marginBottom; y++) {
                     if (x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1)) {
-                        _tileGrid[x + margin, y + margin] = -1;
+                        _tileGrid[x + marginLeft, y + marginTop] = -1;
                         continue;
                     }
 
-                    _tileGrid[x + margin, y + margin] = tiles[x, y].IsFilled ? 1 : 0;
+                    _tileGrid[x + marginLeft, y + marginTop] = tiles[x, y].IsFilled ? 1 : 0;
                 }
             }
             
-            _tileRooms = new Room[tiles.GetLength(0) + margin * 2, tiles.GetLength(1) + margin * 2];
+            _tileRooms = new Room[totalWidth, totalHeight];
             this._map = map;
-            this._margin = margin;
+            this._marginLeft = marginLeft;
+            this._marginRight = marginRight;
+            this._marginTop = marginTop;
+            this._marginBottom = marginBottom;
         }
         
         public int GetTile(int x, int y) {
@@ -650,22 +664,22 @@ public class HouseGenerator {
                     if (room != null) {
                         if (_tileGrid[x, y] >= 2) {
                             if (new Point2D((x, y)).DistanceTo(new Point2D(((int, int)) room.GetCenter())) < 1) {
-                                _map.Paint(room.Texture, x, y, room.Text);
+                                _map.Paint(room.Texture, x + Xmin, y + Ymin, room.Text);
                             }
                             else {
-                                _map.Paint(room.Texture, x, y);
+                                _map.Paint(room.Texture, x + Xmin, y + Ymin);
                             }
                         }
                         else {
-                            _map.Paint(new Texture("Grass"), x, y);
+                            _map.Paint(new Texture("Grass"), x + Xmin, y + Ymin);
                         }
                     }
                     else {
                         if (_tileGrid[x, y] == -1 || _tileGrid[x, y] == 0) {
-                            _map.Paint(new Texture("Grass", Color.Green), x, y);
+                            // _map.Paint(new Texture("Grass", Color.Green), x + Xmin, y + Ymin);
                         }
                         else {
-                            _map.Paint(new Texture("Empty", Color.Black), x, y);
+                            // _map.Paint(new Texture("Empty", Color.Black), x + Xmin, y + Ymin);
                         }
                     }
                 }
@@ -834,30 +848,36 @@ public class HouseGenerator {
             return _tileRooms[x, y];
         }
     }
-    public static void Generate(Map map, int seed) {
-        Random = new Random(seed);
-        Console.Out.WriteLine("seed = {0}", seed);
+    public static void Generate(Map map, int seed, int Xmin, int Xmax, int Ymin, int Ymax, int attempts = 10) {
+        if (attempts == 0) {
+            return;
+        }
 
-        int margin = 2;
+        Random = new Random(seed);
+        // Generar márgenes aleatorios para cada lado
+        int marginLeft = Random.Next(3) + 1;   
+        int marginRight = Random.Next(3) + 1;  
+        int marginTop = Random.Next(3) + 1;    
+        int marginBottom = Random.Next(3) + 1;
         
         int random100 = Random.Next(100);
         
-        int sx = map.x - margin * 2;
-        int sy = map.y - margin * 2;
+        int sx = Xmax - Xmin - marginLeft - marginRight;
+        int sy = Ymax - Ymin - marginTop - marginBottom;
 
         PolygonGenerator.TileInfo[,] tiles;
 
-        if (random100 < 33) {
-            tiles = PolygonGenerator.CreatePolygon(sx, sy, 0.2);
-        }
-        else {
+        // if (random100 < 33) {
+        //     tiles = PolygonGenerator.CreatePolygon(sx, sy, 0.2);
+        // }
+        // else {
             tiles = PolygonGenerator.CreatePolygon(sx, sy, 0);
-        }
+        // }
         
-        HouseBuilder houseBuilder = new HouseBuilder(map, tiles, margin);
+        HouseBuilder houseBuilder = new HouseBuilder(map, tiles, marginLeft, marginRight, marginTop, marginBottom, Xmin, Xmax, Ymin, Ymax);
         if (!houseBuilder.BuildHouse()) {
             Console.Out.WriteLine("No se pudo generar la casa");
-            map.GenerateHouse(Random.Next());
+            Generate(map, Random.Next(), Xmin, Xmax, Ymin, Ymax, attempts - 1);
             return;
         }
     }

@@ -29,6 +29,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
             public List<Squares.Square> Squares;
             public List<Vector2> PossibleEntryPoints;
             public bool[,] BoolPoints;
+            public List<Squares.House> Houses = new List<Squares.House>();
             
         }
         public List<City> GenerateCities(Map map, bool[,] landMask) {

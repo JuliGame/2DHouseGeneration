@@ -20,6 +20,13 @@ namespace Shared.ProceduralGeneration.Island.Cities
             public Color Color;
             public List<Vector2> Points;
         }
+        public class House {
+            public int XMin, XMax, YMin, YMax;
+            public Color Color;
+            public List<Vector2> Points;
+            public bool IsOnSquare;
+        }
+
         public RoadNetwork roadNetwork;
 
         public Squares(int seed, bool[,] landMask, RoadNetwork roadNetwork)
@@ -126,7 +133,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
 
                 for (int k = 0; k < PossibleEntryPoints.Count; k++) {
                     Vector2 point = PossibleEntryPoints[k];
-                    map.Paint(new Texture("Voronoi", city.Color), (int)point.X, (int)point.Y);
+                    // map.Paint(new Texture("Voronoi", city.Color), (int)point.X, (int)point.Y);
                 }
 
                 // continue;
@@ -137,12 +144,24 @@ namespace Shared.ProceduralGeneration.Island.Cities
                 foreach (Square square in squares) {
                     for (int x = square.XMin; x <= square.XMax; x++) {
                         for (int y = square.YMin; y <= square.YMax; y++) {
-                            map.Paint(new Texture("Voronoi", square.Color), x, y);
+                            // map.Paint(new Texture("Voronoi", square.Color), x, y);
                             nonFilledPoints.Remove(new Vector2(x, y));
                             prohibited[x, y] = true;
                         }
                     }
 
+                    int size = 7;
+                    House house = new House {
+                        XMin = square.XMin + size / 2,
+                        XMax = square.XMax - size / 2,
+                        YMin = square.YMin + size / 2,
+                        YMax = square.YMax - size / 2,
+                        Color = square.Color,
+                        Points = square.Points,
+                        IsOnSquare = true
+                    };
+
+                    city.Houses.Add(house);
                     // Draw the roads of the square
                     List<Vector2> points = new List<Vector2>();
                     for (int x = square.XMin; x <= square.XMax; x++) {
@@ -154,8 +173,6 @@ namespace Shared.ProceduralGeneration.Island.Cities
                         points.Add(new Vector2(square.XMax, y));
                     }
 
-
-                    int size = 7;
                     foreach (var point in points) {
                         for (int dx = -size / 2; dx <= size / 2; dx++) {
                             for (int dy = -size / 2; dy <= size / 2; dy++) {
@@ -174,7 +191,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
 
                 for (int k = 0; k < nonFilledPoints.Count; k++) {
                     Vector2 point = nonFilledPoints[k];
-                    map.Paint(new Texture("Voronoi", Color.Green), (int)point.X, (int)point.Y);
+                    // map.Paint(new Texture("Voronoi", Color.Green), (int)point.X, (int)point.Y);
                 }
 
                 citiesToFill.Add(city, nonFilledPoints);
@@ -225,15 +242,27 @@ namespace Shared.ProceduralGeneration.Island.Cities
                     if (isOnRoad)
                         continue;
 
+                    House house = new House {
+                        XMin = xMin,
+                        XMax = xMax,
+                        YMin = yMin,
+                        YMax = yMax,
+                        Color = color,
+                        Points = points,
+                        IsOnSquare = false
+                    };
 
+                    city.Houses.Add(house);
                     for (int x = xMin; x <= xMax; x++) {
                         for (int y = yMin; y <= yMax; y++) {
-                            map.Paint(new Texture("Voronoi", color), x, y);
+                            // map.Paint(new Texture("Voronoi", color), x, y);
                             pointsToPoputale.Remove(new Vector2(x, y));
                         }
                     }                   
                 }
             }
+
+
         }
     }
 }
