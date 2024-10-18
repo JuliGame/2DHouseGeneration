@@ -167,12 +167,12 @@ namespace Shared.ProceduralGeneration
 
             // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPUWaterMask = StartAllocationThread(waterMask);
 
-            Debug("GenerateRivers", false);
-            int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
-            bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
-            Debug("GenerateRivers", true);
+            // Debug("GenerateRivers", false);
+            // int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
+            // bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
+            // Debug("GenerateRivers", true);
 
-            MaskUtils.PaintMask(this, waterMask, new Texture("Water", fromHex("#004c8a")), null);
+            // MaskUtils.PaintMask(this, waterMask, new Texture("Water", fromHex("#004c8a")), null);
 
             
             // Task<MemoryBuffer1D<float, Stride1D.Dense>> GPURiverMask = StartAllocationThread(riverMask);
@@ -215,7 +215,7 @@ namespace Shared.ProceduralGeneration
             //         Paint(new Texture(biome.ToString(), biomColor), i, j);
             //     }
             // }
-            MaskUtils.PaintMask(this, riverMask, new Texture("Water", fromHex("#0872c9")), null);
+            // MaskUtils.PaintMask(this, riverMask, new Texture("Water", fromHex("#0872c9")), null);
             // Debug("Final Paint", true);
             // MapChanged = true;
 
@@ -223,75 +223,20 @@ namespace Shared.ProceduralGeneration
             // GPUtils.UnloadTextureFromGPU(GPUWaterMask.Result);
             // GPUtils.UnloadTextureFromGPU(GPURiverMask.Result);
 
+            MaskUtils.PaintMask(this, waterMask, new Texture("Land", fromHex("#0051ff")), null);
+
             CityGen cityGen = new CityGen(seed);
             List<CityGen.City> cities = cityGen.GenerateCities(this, landMask);
 
-            RoadNetwork roadNetwork = new RoadNetwork(seed, landMask);
-            roadNetwork.GenerateRoads(this, cities);
 
             VoronoiDiagram voronoiDiagram = new VoronoiDiagram(seed);
             voronoiDiagram.Generate(this, landMask);
             voronoiDiagram.PaintCities(this, cities, landMask);
 
-            Random random = new Random(seed);
-            for (int i = 0; i < cities.Count; i++) {
-                CityGen.City city = cities[i];
-                float multiplier = city.IsCapital ? 1.4f : 1;
-                int streetWidth = random.Next((int)(7 * multiplier), (int)(15 * multiplier));
-                int streetHeight = random.Next((int)(7 * multiplier), (int)(15 * multiplier));
+            RoadNetwork roadNetwork = new RoadNetwork(seed, landMask);
+            Squares squares = new Squares(seed, landMask, roadNetwork);
 
-                int longIndex = random.Next(3, 15);
-                while (streetWidth % longIndex == 0 || streetHeight % longIndex == 0) {
-                    longIndex = random.Next(3, 15);
-                }
-                
-                
-
-                for (int j = 0; j < city.Points.Count; j++) {
-                    Vector2 point = city.Points[j];
-
-                    bool isStreetY = point.X % streetWidth == 0;
-                    bool isStreetX = point.Y % streetHeight == 0;
-                    bool isLongStreetY = point.X % longIndex == 0;
-                    bool isLongStreetX = point.Y % longIndex == 0;
-                    bool isCornerStreetCorner = isStreetY && isStreetX;
-                    bool isLongStreetCorner = isLongStreetY && isLongStreetX;
-
-                    bool isStreet = isStreetY || isStreetX;
-                    bool shouldSkip = false;
-                    if (isStreetY && isLongStreetY) {
-                        shouldSkip = true;
-                    }
-                    if (isStreetX && isLongStreetX) {
-                        shouldSkip = true;
-                    }
-
-                    if (shouldSkip && isCornerStreetCorner) {
-                        shouldSkip = false;
-
-                        if (isLongStreetCorner) {
-                            shouldSkip = true;
-                        }
-                    }
-
-
-
-                    Color color = city.Color;
-                    if (isStreet) {
-                        color = Color.LightGray;
-                    }
-                    if (shouldSkip) {
-                        color = city.Color;
-                    }
-
-
-                    Paint(new Texture("Voronoi", color), (int)point.X, (int)point.Y);
-                }
-
-                roadNetwork.DrawRoad(this, city.Edges, Color.Gray, 3);
-            }
-
-
+            squares.GenerateSquares(this, cities);
             MapChanged = true;
         }
 

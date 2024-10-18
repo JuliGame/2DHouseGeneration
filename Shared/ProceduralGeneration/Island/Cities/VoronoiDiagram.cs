@@ -47,16 +47,14 @@ namespace Shared.ProceduralGeneration.Island.Cities
 
                 foreach (var position in city.Position) {
                     PaintVoronoiCellsInRadius(map, new Point((int)position.Position.X, (int)position.Position.Y), position.Radius, city.Color, landMask, paintedPoints, boolPoints);
-                    // foreach (var point in paintedPoints) {
-                    //     map.Paint(new Util.Texture("Voronoi", city.Color), (int)point.X, (int)point.Y);
-                    // }
                 }
                 List<Vector2> edges = GetEdges(paintedPoints, boolPoints);
                 foreach (var edge in edges) {
                     map.Paint(new Util.Texture("Voronoi", city.Color), (int)edge.X, (int)edge.Y);
                 }
                 city.Edges = edges;
-                city.Points = paintedPoints;
+                city.Points = paintedPoints.Distinct().ToList();
+                city.BoolPoints = boolPoints;
             }
         }
 

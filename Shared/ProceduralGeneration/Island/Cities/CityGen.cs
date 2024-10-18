@@ -26,6 +26,10 @@ namespace Shared.ProceduralGeneration.Island.Cities
             public Color Color;
             public List<Vector2> Points;
             public List<Vector2> Edges;
+            public List<Squares.Square> Squares;
+            public List<Vector2> PossibleEntryPoints;
+            public bool[,] BoolPoints;
+            
         }
         public List<City> GenerateCities(Map map, bool[,] landMask) {
             List<City> cities = new List<City>();
@@ -53,9 +57,10 @@ namespace Shared.ProceduralGeneration.Island.Cities
             foreach (var city in cities) {
                 Color randomColor = Color.FromArgb(random.Next(255), random.Next(255), random.Next(255));
                 city.Color = randomColor;
-                foreach (var position in city.Position) {
-                    FillCircle(landMask, (int)position.Position.X, (int)position.Position.Y, position.Radius, map, randomColor);
-                }
+                // city.Color = GenerateBiomes.fromHex("#88357d");
+                // foreach (var position in city.Position) {
+                //     FillCircle(landMask, (int)position.Position.X, (int)position.Position.Y, position.Radius, map, randomColor);
+                // }
             }
 
             return cities;

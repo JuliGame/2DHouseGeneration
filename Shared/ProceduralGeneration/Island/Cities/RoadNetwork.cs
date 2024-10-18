@@ -16,6 +16,7 @@ namespace Shared.ProceduralGeneration.Island.Cities
         private int height;
 
         public Road[,] Roads;
+        public bool[,] prohibited;
         public class Road {
             public List<Vector2> Path;
             public Color Color;
@@ -77,6 +78,28 @@ namespace Shared.ProceduralGeneration.Island.Cities
             return graph;
         }
 
+        public (Vector2, Vector2) GetClosetsEntryPoints(City city, City otherCity) {
+            List<Vector2> entryPoints1 = city.PossibleEntryPoints;
+            List<Vector2> entryPoints2 = otherCity.PossibleEntryPoints;
+
+            Vector2 closest1 = entryPoints1[0];
+            Vector2 closest2 = entryPoints2[0];
+            float minDistance = Vector2.Distance(closest1, closest2);
+
+            foreach (var point1 in entryPoints1) {
+                foreach (var point2 in entryPoints2) {
+                    float distance = Vector2.Distance(point1, point2);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closest1 = point1;
+                        closest2 = point2;
+                    }
+                }
+            }
+
+            return (closest1, closest2);
+        }
+
         private List<Road> GetConnections(Map map, List<CityGen.City> cities, bool[,] graph)
         {
             List<Road> roads = new List<Road>();
@@ -99,8 +122,11 @@ namespace Shared.ProceduralGeneration.Island.Cities
 
             int i2 = 0;
             foreach (var c in connections) {
-                Vector2 start = c.Item1.Position[random.Next(c.Item1.Position.Count)].Position;
-                Vector2 end = c.Item2.Position[random.Next(c.Item2.Position.Count)].Position;
+                // Vector2 start = c.Item1.PossibleEntryPoints[random.Next(c.Item1.PossibleEntryPoints.Count)];
+                // Vector2 end = c.Item2.PossibleEntryPoints[random.Next(c.Item2.PossibleEntryPoints.Count)];
+                (Vector2, Vector2) entryPoints = GetClosetsEntryPoints(c.Item1, c.Item2);
+                Vector2 start = entryPoints.Item1;
+                Vector2 end = entryPoints.Item2;
 
                 bool connectsCapital = c.Item1.IsCapital || c.Item2.IsCapital;
                 List<Vector2> path = FindPath(graph, start, end, connectsCapital);
@@ -142,7 +168,6 @@ namespace Shared.ProceduralGeneration.Island.Cities
                             return ReconstructPath(cameFrom, current);
                         }
                         else {
-                            // 50% chance to continue
                             if (Vector2.Distance(current, start) > 100) {
                                 return null;
                             }
@@ -151,6 +176,10 @@ namespace Shared.ProceduralGeneration.Island.Cities
                     else {
                         return ReconstructPath(cameFrom, current);
                     }
+                }
+
+                if (prohibited[(int)current.X, (int)current.Y] && Vector2.Distance(current, start) > 10) {
+                    return ReconstructPath(cameFrom, current);
                 }
 
                 if (Vector2.Distance(current, end) < 5) // Close enough to destination
@@ -248,13 +277,13 @@ namespace Shared.ProceduralGeneration.Island.Cities
             return smoothedPath;
         }
 
-        public void DrawRoad(Map map, List<Vector2> path, Color color, int width)
+        public void DrawRoad(Map map, List<Vector2> path, Color color, int size)
         {
             foreach (var point in path)
             {
-                for (int dx = -width / 2; dx <= width / 2; dx++)
+                for (int dx = -size / 2; dx <= size / 2; dx++)
                 {
-                    for (int dy = -width / 2; dy <= width / 2; dy++)
+                    for (int dy = -size / 2; dy <= size / 2; dy++)
                     {
                         int x = (int)point.X + dx;
                         int y = (int)point.Y + dy;
