@@ -4,9 +4,8 @@ namespace Shared.ProceduralGeneration.Island
 {
     public static class CPUHumidity
     {
-        public static float[,] GetHumidity(Map map, float[,] humidityMapSea, float[,] heightMap, bool[,] riverMask, int seed)
+        public static float[,] GetHumidity(Map map, float[,] humidityMapSea, float[,] heightMap, float[,] humidityMapRiver, int seed)
         {
-            float[,] humidityMapRiver = ConvolutionUtil.Blur(riverMask, 10);
             humidityMapRiver = MaskUtils.Normalize(humidityMapRiver);
             humidityMapSea = MaskUtils.Normalize(humidityMapSea);
             float[,] humidityMap = MaskUtils.AddMasks(humidityMapRiver, humidityMapSea);

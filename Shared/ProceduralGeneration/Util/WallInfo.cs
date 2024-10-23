@@ -13,12 +13,19 @@ namespace Shared.ProceduralGeneration.Util
         public List<(int, int)> Points = new List<(int, int)>();
         public int Length => Points.Count;
 
+        public int OffsetX;
+        public int OffsetY;
+        public WallInfo(int offsetX, int offsetY) {
+            OffsetX = offsetX;
+            OffsetY = offsetY;
+        }
+
         private void MakeAllWalls(Map map, float thickness)
         {
             foreach (var point in Points)
             {
                 Texture color = new Texture("Wall",Color.Black);
-                map.PaintWall(color, point.Item1, point.Item2, false, false, thickness);
+                PaintWallOffset(map, color, point.Item1, point.Item2, false, false, thickness);
             }
         }
 
@@ -31,15 +38,15 @@ namespace Shared.ProceduralGeneration.Util
             // paint middle wall as transparent
             if (Horizontal)
             {
-                map.PaintWall(color, Points[middle].Item1, Points[middle].Item2);
+                PaintWallOffset(map, color, Points[middle].Item1, Points[middle].Item2);
                 if (isPair)
                 {
-                    map.PaintWall(color, Points[middle - 1].Item1, Points[middle - 1].Item2);
+                    PaintWallOffset(map, color, Points[middle - 1].Item1, Points[middle - 1].Item2);
                 }
             }
             else
             {
-                map.PaintWall(color, Points[middle].Item1, Points[middle].Item2);
+                PaintWallOffset(map, color, Points[middle].Item1, Points[middle].Item2);
             }
         }
 
@@ -223,7 +230,7 @@ namespace Shared.ProceduralGeneration.Util
                     Point2D point2D1 = new Point2D(valueTuple.Item1, valueTuple.Item2);
                     if (point2D.DistanceTo(point2D1) < 2)
                     {
-                        map.PaintWall(new Texture("Door", Color.Yellow), valueTuple.Item1, valueTuple.Item2);
+                        PaintWallOffset(map, new Texture("Door", Color.Yellow), valueTuple.Item1, valueTuple.Item2);
 
                         if (Length < 7)
                             return;
@@ -240,6 +247,10 @@ namespace Shared.ProceduralGeneration.Util
 
 
             MakeDoorInMiddle(map);
+        }
+
+        public void PaintWallOffset(Map map, Texture texture, int wallX, int wallY, bool half = false, bool topLeft = false, float thickness = .3f) {
+            map.PaintWall(texture, wallX + OffsetX * 2, wallY + OffsetY * 2, half, topLeft, thickness);
         }
     }
 }

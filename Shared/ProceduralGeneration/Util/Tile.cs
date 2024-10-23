@@ -1,5 +1,8 @@
+using System;
+
 namespace Shared.ProceduralGeneration.Util
 {
+    [Serializable]
     public class Tile
     {
         public int TextureIndex;

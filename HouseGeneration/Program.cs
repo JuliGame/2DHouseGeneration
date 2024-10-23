@@ -15,7 +15,7 @@ static class Program
 
         try
         {
-            //using var game = new HouseGeneratorRenderer();
+            // using var game = new HouseGeneratorRenderer();
             // using var game = new ItemEditorMain();
             
             using (var game = new MapGeneratorRenderer())

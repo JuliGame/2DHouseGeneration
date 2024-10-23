@@ -32,7 +32,7 @@ namespace Shared.ProceduralGeneration.Island
         public static void SetupDict() {
             BiomeConfigurations = new Dictionary<Biome, BiomeConfig>
             {
-                { Biome.Ocean, new BiomeConfig(new Vector4(0, 0.5f, 0.5f, 1f), fromHex("#184b75")) },
+                { Biome.Ocean, new BiomeConfig(new Vector4(0, 0.5f, 0.5f, 1f), fromHex("#f7efad")) },
                 { Biome.Beach, new BiomeConfig(new Vector4(0.5f, 0.5f, 0f, .7f), fromHex("#ffe6a0")) },
                 { Biome.Desert, new BiomeConfig(new Vector4(0.5f, 0.95f, 0.1f, .5f), fromHex("#dfb65f")) },
                 { Biome.Grassland, new BiomeConfig(new Vector4(0.5f, 0.4f, 0.3f, .5f), fromHex("#13a700")) },

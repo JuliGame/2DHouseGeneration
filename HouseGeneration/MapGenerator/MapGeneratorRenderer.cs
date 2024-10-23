@@ -30,6 +30,8 @@ namespace HouseGeneration.MapGeneratorRenderer
 
         private Keys[] _previousPressedKeys;
 
+        private const string SAVE_FILE_PATH = "last_map.blob";
+
         public MapGeneratorRenderer()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -67,16 +69,16 @@ namespace HouseGeneration.MapGeneratorRenderer
 
             _map = new Map(1024 * 1, 1024 * 1); // Example size
 
-            Thread mapGeneratorThread = new Thread(() => {             
-                _map.Generate(_seed, (string taskName, bool end) => {
-                    if (end) {
-                        _taskPerformanceMenu.EndTask(taskName);
-                    } else {
-                        _taskPerformanceMenu.StartTask(taskName);
-                    }
-                }, _useCPU);
-            });
-            mapGeneratorThread.Start();
+            // Thread mapGeneratorThread = new Thread(() => {             
+            //     _map.Generate(_seed, (string taskName, bool end) => {
+            //         if (end) {
+            //             _taskPerformanceMenu.EndTask(taskName);
+            //         } else {
+            //             _taskPerformanceMenu.StartTask(taskName);
+            //         }
+            //     }, _useCPU);
+            // });
+            // mapGeneratorThread.Start();
 
 
             base.Initialize();
@@ -136,6 +138,13 @@ namespace HouseGeneration.MapGeneratorRenderer
             if (ImGui.Button("Generate New Map"))
             {
                 _isGeneratingMap = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Regenerate from Last Save"))
+            {
+                Console.WriteLine("Regenerating from last save...");
+                RegenerateFromLastSave();
+                Console.WriteLine("Map regenerated from last save.");
             }
             ImGui.SameLine();
             if (ImGui.Button("Force re-render"))
@@ -211,8 +220,13 @@ namespace HouseGeneration.MapGeneratorRenderer
                         }
                     }, _useCPU);
                     
+                    // Save the generated map
+                    Console.WriteLine("Saving generated map...");
+                    SaveGeneratedMap();
+
+
                     mapGenerationThread = null;
-                    Console.WriteLine("New map generated!");
+                    Console.WriteLine("New map generated and saved!");
                     if (_incrementSeed) {
                         _seed++;
                     }
@@ -226,6 +240,42 @@ namespace HouseGeneration.MapGeneratorRenderer
 
             mapGenerationThread.Start();
             Console.WriteLine("Map generation thread started!");
+        }
+
+        private void SaveGeneratedMap()
+        {
+            try
+            {
+                byte[] blob = _map.ToBlob();
+                File.WriteAllBytes(SAVE_FILE_PATH, blob);
+                Console.WriteLine("Map saved successfully.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error saving map: {e.Message}");
+            }
+        }
+
+        private void RegenerateFromLastSave()
+        {
+            if (File.Exists(SAVE_FILE_PATH))
+            {
+                try
+                {
+                    byte[] blob = File.ReadAllBytes(SAVE_FILE_PATH);
+                    _map = MapSerializers.FromBlob(blob);
+                    _map.MapChanged = true;
+                    Console.WriteLine("Map regenerated from last save.");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error loading map from file: {e.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No saved map file found.");
+            }
         }
 
         public void MoveCamera(Vector2 delta)

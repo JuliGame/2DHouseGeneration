@@ -574,7 +574,7 @@ public class HouseGenerator {
                         }
                         
 
-                        WallInfo wallInfo = new WallInfo();
+                        WallInfo wallInfo = new WallInfo(Xmin, Ymin);
                         wallInfo.Parent = roomInfo;
                         wallInfo.Horizontal = side == Side.Top || side == Side.Bottom;
                         wallInfo.Child = null;

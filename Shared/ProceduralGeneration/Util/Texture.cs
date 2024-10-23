@@ -3,6 +3,7 @@ using System.Drawing;
 
 namespace Shared.ProceduralGeneration.Util
 {
+    [Serializable]
     public class Texture {
         public String Info = "Empty";
         public Color Color;

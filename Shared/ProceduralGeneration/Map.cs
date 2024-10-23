@@ -4,28 +4,31 @@ using System.Collections.Generic;
 using Shared.ProceduralGeneration.Island;
 using Shared.ProceduralGeneration.Util;
 using static Shared.ProceduralGeneration.Island.GenerateBiomes;
-using System.Threading.Tasks;
 using Shared.ProceduralGeneration.Island.Cities;
-using System.Numerics;
 
 namespace Shared.ProceduralGeneration
 {
+    [Serializable]
     public class Map
     {
         public readonly int x;
         public readonly int y;
         public bool MapChanged = false;
 
-        private int[,] tileIndices;
+        public int[,] tileIndices;
         public List<Tile> TileTypes;
         public List<Texture> TextureTypes;
         public Wall[,] Walls;
+        public bool[,] oceanMask;
+        public bool[,] riverMask;
 
         public Map(int x, int y) {
             this.x = x;
             this.y = y;
         
             tileIndices = new int[x, y];
+            oceanMask = new bool[x, y];
+            riverMask = new bool[x, y];
             TileTypes = new List<Tile>();
             TextureTypes = new List<Texture>();
             Walls = new Wall[x*2+1, y*2+1];
@@ -42,7 +45,7 @@ namespace Shared.ProceduralGeneration
                     tileIndices[i, j] = tileIndex;
                 }
             }
-            int wallTextureIndex = AddOrGetTextureType(new Texture("Wall", Color.Black));
+            int wallTextureIndex = AddOrGetTextureType(new Texture("Empty", Color.FromArgb(0, 0,0,0)));
             for (int i = 0; i < x*2+1; i++) {
                 for (int j = 0; j < y*2+1; j++) {
                     Walls[i, j] = new Wall(wallTextureIndex);
@@ -77,7 +80,7 @@ namespace Shared.ProceduralGeneration
         public void GenerateHouse(int seed) {
             GenerateEmpty(seed);
         
-            HouseGenerator.Generate(this, seed, 0, 20, 0, 20);
+            HouseGenerator.Generate(this, seed, 10, 20, 5, 20);
         }
 
         public int getM2() {
@@ -95,24 +98,24 @@ namespace Shared.ProceduralGeneration
 
 
             bool[,] landMask = MaskUtils.GetHigherThan(islandHeightMap, 0.1f);
-            bool[,] waterMask = MaskUtils.CreateReverseMask(landMask);
+            oceanMask = MaskUtils.CreateReverseMask(landMask);
 
             Debug("GenerateRivers", false);
             int riverAmmount = Math.Min(100, (int) (getM2() / 1000000) * 3);
-            bool[,] riverMask = GenerateRivers.Generate(this, waterMask, islandHeightMap, seed, riverAmmount);
+            riverMask = GenerateRivers.Generate(this, oceanMask, islandHeightMap, seed, riverAmmount);
             Debug("GenerateRivers", true);
 
             // MaskUtils.PaintMask(this, waterMask, new Texture("Water", fromHex("#004c8a")), null);
 
             Debug("Weather", false);
             Debug("Weather-Convolute", false);
-            float[,] convolutedSea = ConvolutionUtil.Blur(waterMask, 5);
-            float[,] convolutedRiver = ConvolutionUtil.Blur(riverMask, 5);
+            float[,] convolutedSea = ConvolutionUtil.Blur(oceanMask, 5);
+            float[,] convolutedRiver = ConvolutionUtil.Blur(riverMask, 10);
             Debug("Weather-Convolute", true);
 
 
             Debug("Weather-Humidity", false);
-            float[,] humidityMap = CPUHumidity.GetHumidity(this, convolutedSea, islandHeightMap, riverMask, seed);
+            float[,] humidityMap = CPUHumidity.GetHumidity(this, convolutedSea, islandHeightMap, convolutedRiver, seed);
             Debug("Weather-Humidity", true);
 
             Debug("Weather-Temperature", false);
@@ -121,7 +124,7 @@ namespace Shared.ProceduralGeneration
             Debug("Weather", true);
 
             Debug("GenerateBiomes", false);
-            Biome[,] biomeMap = GenerateBiomes.Generate(this, waterMask, temperatureMap, humidityMap, islandHeightMap, convolutedSea);
+            Biome[,] biomeMap = GenerateBiomes.Generate(this, oceanMask, temperatureMap, humidityMap, islandHeightMap, convolutedSea);
             Debug("GenerateBiomes", true);
 
             Debug("Final Paint", false);
@@ -132,9 +135,10 @@ namespace Shared.ProceduralGeneration
                     Paint(new Texture(biome.ToString(), biomColor), i, j);
                 }
             }
-            MaskUtils.PaintMask(this, riverMask, new Texture("Water", fromHex("#0872c9")), null);
+            // MaskUtils.PaintMask(this, riverMask, new Texture("Water", fromHex("#0872c9")), null);
             Debug("Final Paint", true);
             MapChanged = true;
+            return;
 
             CityGen cityGen = new CityGen(seed);
             List<CityGen.City> cities = cityGen.GenerateCities(this, landMask);
