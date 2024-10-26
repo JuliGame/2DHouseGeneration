@@ -15,9 +15,8 @@ namespace Shared.ProceduralGeneration.Island
             Grassland,
             Desert,
             Forest,
-            Mountains,
-            Ice_mountains,
-            Snow
+            Snow,
+            Frost
         }
 
         public static Dictionary<Biome, BiomeConfig> BiomeConfigurations = new Dictionary<Biome, BiomeConfig> {};
@@ -31,15 +30,14 @@ namespace Shared.ProceduralGeneration.Island
         }
         public static void SetupDict() {
             BiomeConfigurations = new Dictionary<Biome, BiomeConfig>
-            {
+            {                       // Elevation, Temperature, Humidity, Proximity to sea
                 { Biome.Ocean, new BiomeConfig(new Vector4(0, 0.5f, 0.5f, 1f), fromHex("#f7efad")) },
-                { Biome.Beach, new BiomeConfig(new Vector4(0.5f, 0.5f, 0f, .7f), fromHex("#ffe6a0")) },
-                { Biome.Desert, new BiomeConfig(new Vector4(0.5f, 0.95f, 0.1f, .5f), fromHex("#dfb65f")) },
-                { Biome.Grassland, new BiomeConfig(new Vector4(0.5f, 0.4f, 0.3f, .5f), fromHex("#13a700")) },
-                { Biome.Forest, new BiomeConfig(new Vector4(0.5f, 0.35f, 0.7f, .5f), fromHex("#014209")) },
-                { Biome.Mountains, new BiomeConfig(new Vector4(1f, 0.4f, 0.4f, .4f), fromHex("#615454")) },
-                { Biome.Ice_mountains, new BiomeConfig(new Vector4(1f, 0.3f, 0.4f, .4f), fromHex("#356194")) },
-                { Biome.Snow, new BiomeConfig(new Vector4(0.5f, .1f, 0.3f, .5f), fromHex("#cae0f1")) },
+                { Biome.Beach, new BiomeConfig(new Vector4(0, 0.5f, 0f, .7f), fromHex("#ffe6a0")) },
+                { Biome.Desert, new BiomeConfig(new Vector4(0f, 0.95f, 0.1f, .5f), fromHex("#dfb65f")) },
+                { Biome.Grassland, new BiomeConfig(new Vector4(0f, 0.4f, 0.3f, .5f), fromHex("#13a700")) },
+                { Biome.Forest, new BiomeConfig(new Vector4(0f, 0.35f, 0.7f, .5f), fromHex("#014209")) },
+                { Biome.Snow, new BiomeConfig(new Vector4(0f, .1f, 0.3f, .5f), fromHex("#cae0f1")) },
+                { Biome.Frost, new BiomeConfig(new Vector4(0f, .1f, 0.3f, .5f), fromHex("#73b1e0")) },
             };
         }
 

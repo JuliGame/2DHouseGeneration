@@ -21,6 +21,7 @@ namespace Shared.ProceduralGeneration
         public Wall[,] Walls;
         public bool[,] oceanMask;
         public bool[,] riverMask;
+        public Biome[,] biomeMap;
 
         public Map(int x, int y) {
             this.x = x;
@@ -29,6 +30,7 @@ namespace Shared.ProceduralGeneration
             tileIndices = new int[x, y];
             oceanMask = new bool[x, y];
             riverMask = new bool[x, y];
+            biomeMap = new Biome[x, y];
             TileTypes = new List<Tile>();
             TextureTypes = new List<Texture>();
             Walls = new Wall[x*2+1, y*2+1];
@@ -37,7 +39,7 @@ namespace Shared.ProceduralGeneration
         }
 
         private void GenerateEmpty(int seed) {
-            Color randomGreen = Color.FromArgb(0, 100, 0);
+            Color randomGreen = Color.Transparent;
             int textureIndex = AddOrGetTextureType(new Texture("Void", randomGreen));
             int tileIndex = AddOrGetTileType(new Tile(textureIndex));
             for (int i = 0; i < x; i++) {
@@ -109,8 +111,8 @@ namespace Shared.ProceduralGeneration
 
             Debug("Weather", false);
             Debug("Weather-Convolute", false);
-            float[,] convolutedSea = ConvolutionUtil.Blur(oceanMask, 5);
-            float[,] convolutedRiver = ConvolutionUtil.Blur(riverMask, 10);
+            float[,] convolutedSea = ConvolutionUtil.Blur(oceanMask, 100);
+            float[,] convolutedRiver = ConvolutionUtil.Blur(riverMask, 100);
             Debug("Weather-Convolute", true);
 
 
@@ -118,41 +120,45 @@ namespace Shared.ProceduralGeneration
             float[,] humidityMap = CPUHumidity.GetHumidity(this, convolutedSea, islandHeightMap, convolutedRiver, seed);
             Debug("Weather-Humidity", true);
 
+
             Debug("Weather-Temperature", false);
             float[,] temperatureMap = TemperatureCalculator.GetTemperature(this, seed, islandHeightMap);
             Debug("Weather-Temperature", true);
             Debug("Weather", true);
 
+            // MaskUtils.DebugPaintFloatMask(this, humidityMap);
+            // return;
+
             Debug("GenerateBiomes", false);
-            Biome[,] biomeMap = GenerateBiomes.Generate(this, oceanMask, temperatureMap, humidityMap, islandHeightMap, convolutedSea);
+            biomeMap = GenerateBiomes.Generate(this, oceanMask, temperatureMap, humidityMap, islandHeightMap, convolutedSea);
             Debug("GenerateBiomes", true);
 
-            Debug("Final Paint", false);
-            for (int i = 0; i < x; i++) {
-                for (int j = 0; j < y; j++) {
-                    Biome biome = biomeMap[i, j];
-                    Color biomColor = BiomeConfigurations[biome].Color;
-                    Paint(new Texture(biome.ToString(), biomColor), i, j);
-                }
-            }
-            // MaskUtils.PaintMask(this, riverMask, new Texture("Water", fromHex("#0872c9")), null);
-            Debug("Final Paint", true);
-            MapChanged = true;
-            return;
-
+            Debug("CityGen", false);
+            Debug("CityGen-GenerateCities", false);
             CityGen cityGen = new CityGen(seed);
             List<CityGen.City> cities = cityGen.GenerateCities(this, landMask);
+            Debug("CityGen-GenerateCities", true);
 
+            Debug("CityGen-Voronoi", false);
             VoronoiDiagram voronoiDiagram = new VoronoiDiagram(seed);
             voronoiDiagram.Generate(this, landMask);
             voronoiDiagram.PaintCities(this, cities, landMask);
+            Debug("CityGen-Voronoi", true);
 
+            Debug("CityGen-RoadNetwork", false);
             RoadNetwork roadNetwork = new RoadNetwork(seed, landMask);
-            Squares squares = new Squares(seed, landMask, roadNetwork);
+            Debug("CityGen-RoadNetwork", true);
 
+            Debug("CityGen-Squares", false);
+            Squares squares = new Squares(seed, landMask, roadNetwork);
+            Debug("CityGen-Squares", true);
+
+            Debug("CityGen-GenerateSquares", false);
             squares.GenerateSquares(this, cities);
+            Debug("CityGen-GenerateSquares", true);
 
             int num = 0;
+            Debug("CityGen-GenerateHouses", false);
             foreach (var city in cities) {
                 foreach (var house in city.Houses) {
                     num++;
@@ -170,6 +176,9 @@ namespace Shared.ProceduralGeneration
                     }
                 }
             }
+            Debug("CityGen-GenerateHouses", true);
+
+            Debug("CityGen", true);
 
             MapChanged = true;
         }

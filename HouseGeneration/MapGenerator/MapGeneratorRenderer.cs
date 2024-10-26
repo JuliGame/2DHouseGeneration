@@ -218,6 +218,8 @@ namespace HouseGeneration.MapGeneratorRenderer
                         } else {
                             _taskPerformanceMenu.StartTask(taskName);
                         }
+                        
+                        _map.MapChanged = true;
                     }, _useCPU);
                     
                     // Save the generated map

@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Shared.ProceduralGeneration;
+using Shared.ProceduralGeneration.Island;
 using Shared.ProceduralGeneration.Util;
 using System;
 using System.Collections.Generic;
@@ -139,11 +140,22 @@ namespace HouseGeneration.MapGeneratorRenderer
 
                     if (mapX < map.x && mapY < map.y && mapX >= 0 && mapY >= 0)
                     {
-                        Tile tile = map.GetTile(mapX, mapY);
-                        System.Drawing.Color tileColor = map.TextureTypes[tile.TextureIndex].Color;
+                        Color color = ToXnaColor(GenerateBiomes.BiomeConfigurations[map.biomeMap[mapX, mapY]].Color);
 
-                        // System.Drawing.Color tileColor = System.Drawing.Color.FromArgb(random.Next(256), i, 255);
-                        colorData[y * ChunkSize + x] = new Color(tileColor.R, tileColor.G, tileColor.B);
+                        if (map.riverMask[mapX, mapY]) {
+                            color = LerpColor(color, Color.Blue, 0.5f);
+                        }
+                        if (map.oceanMask[mapX, mapY]) {
+                            color = LerpColor(color, Color.DarkBlue, 0.7f);
+                        }
+                        if (!map.TextureTypes[map.GetTile(mapX, mapY).TextureIndex].Color.Equals(Color.Transparent)) {
+                            System.Drawing.Color tileColor = map.TextureTypes[map.GetTile(mapX, mapY).TextureIndex].Color;
+                            if (tileColor.A > 0) {
+                                color = ToXnaColor(tileColor);
+                            }
+                        }
+
+                        colorData[y * ChunkSize + x] = new Color(color.R, color.G, color.B);
                     }
                     else
                     {
@@ -158,6 +170,17 @@ namespace HouseGeneration.MapGeneratorRenderer
             _mapChunks[chunkCoord] = chunkTexture;
         }
 
+        private Color ToXnaColor(System.Drawing.Color color) {
+            return new Color(color.R, color.G, color.B);
+        }
+        private Color LerpColor(Color a, Color b, float t) {
+            return new Color(
+                (byte)MathHelper.Lerp(a.R, b.R, t),
+                (byte)MathHelper.Lerp(a.G, b.G, t),
+                (byte)MathHelper.Lerp(a.B, b.B, t)
+            );
+        }
+        
         private void DrawGizmos(SpriteBatch spriteBatch, Camera _camera)
         {
             spriteBatch.End();

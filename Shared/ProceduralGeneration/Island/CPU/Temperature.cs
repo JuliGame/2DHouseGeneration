@@ -17,21 +17,21 @@ namespace Shared.ProceduralGeneration.Island
             {
                 for (int x = 0; x < width; x++)
                 {
-                    float noise = FractalNoise(x, y, seed, 6, 2.0f, 0.5f);
+                    float noise = FractalNoise(x, y, seed, 8, 2.0f, 0.55f, 0.005f);
                     temperatureMap[x, y] = noise;
                 }
             }
 
             // Apply circular blur directly to 2D array
-            int blurRadius = 10;
-            temperatureMap = ConvolutionUtil.Blur(temperatureMap, blurRadius * 2 + 1);
+            // int blurRadius = 10;
+            // temperatureMap = ConvolutionUtil.Blur(temperatureMap, blurRadius * 2 + 1);
 
             // Apply height influence
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    float heightInfluence = heightmap[x, y] > .5f ? 1f : heightmap[x, y];
+                    float heightInfluence = heightmap[x, y] > .5f ? 1f : heightmap[x, y] ;
                     float noiseInfluence = 1 - heightInfluence;
                     temperatureMap[x, y] *= noiseInfluence;
                 }
@@ -41,10 +41,9 @@ namespace Shared.ProceduralGeneration.Island
             return temperatureMap;
         }
 
-        private static float FractalNoise(float x, float y, int seed, int octaves, float lacunarity, float persistence)
+        public static float FractalNoise(float x, float y, int seed, int octaves, float lacunarity, float persistence, float frequency = 0.005f)
         {
             float total = 0;
-            float frequency = 0.005f;
             float amplitude = 1;
             float maxValue = 0;
 

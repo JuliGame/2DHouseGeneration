@@ -11,8 +11,24 @@ namespace Shared.ProceduralGeneration.Island
             float[,] humidityMap = MaskUtils.AddMasks(humidityMapRiver, humidityMapSea);
             humidityMap = MaskUtils.AddMasks(humidityMapRiver, humidityMap);
             humidityMap = MaskUtils.Normalize(humidityMap);
-            float[,] height = MaskUtils.Multiply(heightMap, .7f);
-            humidityMap = MaskUtils.AddMasks(humidityMap, height);
+   
+
+   
+            Console.WriteLine("Starting CPU temperature generation...");
+            int width = map.x;
+            int height = map.y;
+            float[,] temperatureMap = new float[width, height];
+            // Generate initial noise
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float noise = TemperatureCalculator.FractalNoise(x, y, seed, 8, 2.0f, 0.55f, 0.0035f) * .6f;
+                    temperatureMap[x, y] = noise;
+                }
+            }
+
+            humidityMap = MaskUtils.AddMasks(humidityMap, temperatureMap);
             return humidityMap;
         }
     }

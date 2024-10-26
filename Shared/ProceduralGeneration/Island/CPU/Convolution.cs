@@ -1,217 +1,157 @@
 using System;
+using System.Threading.Tasks;
 
 namespace Shared.ProceduralGeneration.Island
 {
     public static class ConvolutionUtil
     {   
-        public static float[] Blur(float[] input, int width, int height, int kernelSize)
-        {
-            // Circular blur
-            return ApplyCircularBlur(input, width, height, kernelSize);
-        }
-
-        private static float[] ApplyCircularBlur(float[] input, int width, int height, int kernelSize)
-        {
-            float[] output = new float[input.Length];
-            int radius = kernelSize / 2;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float sum = 0;
-                    int count = 0;
-
-                    for (int ky = -radius; ky <= radius; ky++)
-                    {
-                        for (int kx = -radius; kx <= radius; kx++)
-                        {
-                            // Check if the point is within the circular kernel
-                            if (kx * kx + ky * ky <= radius * radius)
-                            {
-                                int sampleX = x + kx;
-                                int sampleY = y + ky;
-
-                                // Check if the sample is within the image bounds
-                                if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height)
-                                {
-                                    sum += input[sampleY * width + sampleX];
-                                    count++;
-                                }
-                            }
-                        }
-                    }
-
-                    output[y * width + x] = count > 0 ? sum / count : 0;
-                }
-            }
-
-            return output;
-        }
-
-        public static float[] SquareBlur(float[] input, int width, int height, int kernelSize)
-        {
-            return ApplySquareBlur(input, width, height, kernelSize);
-        }
-
-        private static float[] ApplySquareBlur(float[] input, int width, int height, int kernelSize)
-        {
-            float[] output = new float[input.Length];
-            int halfKernel = kernelSize / 2;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float sum = 0;
-                    int count = 0;
-
-                    for (int ky = -halfKernel; ky <= halfKernel; ky++)
-                    {
-                        for (int kx = -halfKernel; kx <= halfKernel; kx++)
-                        {
-                            int sampleX = x + kx;
-                            int sampleY = y + ky;
-
-                            // Check if the sample is within the image bounds
-                            if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height)
-                            {
-                                sum += input[sampleY * width + sampleX];
-                                count++;
-                            }
-                        }
-                    }
-
-                    output[y * width + x] = count > 0 ? sum / count : 0;
-                }
-            }
-
-            return output;
-        }
-
-        public static float[] GaussianBlur(float[] input, int width, int height, int kernelSize)
-        {
-            float[] kernel = CreateGaussianKernel(kernelSize);
-            return ApplyConvolution(input, width, height, kernel, kernelSize);
-        }
-
-        private static float[] CreateGaussianKernel(int size)
-        {
-            float[] kernel = new float[size * size];
-            float sigma = size / 6f;
-            float sum = 0;
-            int halfSize = size / 2;
-
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    int index = y * size + x;
-                    if (index < 0 || index >= kernel.Length)
-                    {
-                        // Skip this iteration if the index is out of bounds
-                        continue;
-                    }
-                    float xOffset = x - halfSize;
-                    float yOffset = y - halfSize;
-                    kernel[index] = (float)Math.Exp(-(xOffset * xOffset + yOffset * yOffset) / (2 * sigma * sigma));
-                    sum += kernel[index];
-                }
-            }
-
-            // Normalize the kernel
-            for (int i = 0; i < kernel.Length; i++)
-            {
-                kernel[i] /= sum;
-            }
-
-            return kernel;
-        }
-
-        private static float[] ApplyConvolution(float[] input, int width, int height, float[] kernel, int kernelSize)
-        {
-            float[] output = new float[input.Length];
-            int halfKernel = kernelSize / 2;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    float sum = 0;
-                    float weightSum = 0;
-
-                    for (int ky = -halfKernel; ky <= halfKernel; ky++)
-                    {
-                        for (int kx = -halfKernel; kx <= halfKernel; kx++)
-                        {
-                            int sx = x + kx;
-                            int sy = y + ky;
-                            if (sx >= 0 && sx < width && sy >= 0 && sy < height)
-                            {
-                                int kernelIndex = (ky + halfKernel) * kernelSize + (kx + halfKernel);
-                                float kernelValue = kernel[kernelIndex];
-                                sum += input[sy * width + sx] * kernelValue;
-                                weightSum += kernelValue;
-                            }
-                        }
-                    }
-                    output[y * width + x] = weightSum > 0 ? sum / weightSum : 0;
-                }
-            }
-
-            return output;
-        }
-
         public static float[,] Blur(bool[,] input, int kernelSize)
         {
-            int height = input.GetLength(0);
-            int width = input.GetLength(1);
-            float[,] output = new float[height, width];
-            for (int i = 0; i < height; i++)
-                for (int j = 0; j < width; j++)
-                    output[i, j] = input[i, j] ? 1f : 0f;
+            int width = input.GetLength(0);
+            int height = input.GetLength(1);
+            float[,] input1D = new float[width, height];
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < height; j++)
+                    input1D[i, j] = input[i, j] ? 1f : 0f;
 
-            float[,] output2D = Blur(output, kernelSize);
-            return output2D;
+            return Blur(input1D, kernelSize);
         }
 
         public static float[,] Blur(float[,] input, int kernelSize)
         {
-            int height = input.GetLength(0);
-            int width = input.GetLength(1);
-            float[,] output = new float[height, width];
-            int radius = kernelSize / 2;
+            // Determine the scale factor based on kernel size
+            int scaleFactor = Math.Max(1, kernelSize / 8);
+            int width = input.GetLength(0);
+            int height = input.GetLength(1);
+            float[] input1D = new float[width * height];
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < height; j++)
+                    input1D[j * width + i] = input[i, j];
 
-            for (int y = 0; y < height; y++)
+            float[] output1D = ApplyCircularBlurWithScaling(input1D, width, height, kernelSize, scaleFactor);
+            float[,] output = new float[width, height];
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < height; j++)
+                    output[i, j] = output1D[j * width + i];
+            return output;
+        }
+
+        private static float[] ApplyCircularBlurWithScaling(float[] input, int width, int height, int kernelSize, int scaleFactor)
+        {
+            // Downscale
+            int smallWidth = width / scaleFactor;
+            int smallHeight = height / scaleFactor;
+            float[] smallInput = Downscale(input, width, height, smallWidth, smallHeight);
+
+            // Apply blur on smaller image
+            int smallKernelSize = Math.Max(3, kernelSize / scaleFactor);
+            float[] smallOutput = ApplyCircularBlur(smallInput, smallWidth, smallHeight, smallKernelSize);
+
+            // Upscale
+            return Upscale(smallOutput, smallWidth, smallHeight, width, height);
+        }
+
+        private static float[] Downscale(float[] input, int width, int height, int newWidth, int newHeight)
+        {
+            float[] output = new float[newWidth * newHeight];
+            float scaleX = (float)width / newWidth;
+            float scaleY = (float)height / newHeight;
+
+            Parallel.For(0, newHeight, y =>
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    int srcX = (int)(x * scaleX);
+                    int srcY = (int)(y * scaleY);
+                    output[y * newWidth + x] = input[srcY * width + srcX];
+                }
+            });
+
+            return output;
+        }
+
+        private static float[] Upscale(float[] input, int width, int height, int newWidth, int newHeight)
+        {
+            float[] output = new float[newWidth * newHeight];
+            float scaleX = (float)width / newWidth;
+            float scaleY = (float)height / newHeight;
+
+            Parallel.For(0, newHeight, y =>
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    float srcX = x * scaleX;
+                    float srcY = y * scaleY;
+                    int x0 = (int)srcX;
+                    int y0 = (int)srcY;
+                    int x1 = Math.Min(x0 + 1, width - 1);
+                    int y1 = Math.Min(y0 + 1, height - 1);
+
+                    float fx = srcX - x0;
+                    float fy = srcY - y0;
+
+                    float a = input[y0 * width + x0];
+                    float b = input[y0 * width + x1];
+                    float c = input[y1 * width + x0];
+                    float d = input[y1 * width + x1];
+
+                    float value = a * (1 - fx) * (1 - fy) +
+                                  b * fx * (1 - fy) +
+                                  c * (1 - fx) * fy +
+                                  d * fx * fy;
+
+                    output[y * newWidth + x] = value;
+                }
+            });
+
+            return output;
+        }
+       
+        private static float[] ApplyCircularBlur(float[] input, int width, int height, int kernelSize)
+        {
+            float[] output = new float[input.Length];
+            int radius = kernelSize / 2;
+            int[] xOffsets = new int[kernelSize * kernelSize];
+            int[] yOffsets = new int[kernelSize * kernelSize];
+            int kernelCount = 0;
+
+            // Pre-compute kernel offsets
+            for (int ky = -radius; ky <= radius; ky++)
+            {
+                for (int kx = -radius; kx <= radius; kx++)
+                {
+                    if (kx * kx + ky * ky <= radius * radius)
+                    {
+                        xOffsets[kernelCount] = kx;
+                        yOffsets[kernelCount] = ky;
+                        kernelCount++;
+                    }
+                }
+            }
+
+            // Apply blur
+            Parallel.For(0, height, y =>
             {
                 for (int x = 0; x < width; x++)
                 {
                     float sum = 0;
                     int count = 0;
 
-                    for (int ky = -radius; ky <= radius; ky++)
+                    for (int k = 0; k < kernelCount; k++)
                     {
-                        for (int kx = -radius; kx <= radius; kx++)
-                        {
-                            // Check if the point is within the circular kernel
-                            if (kx * kx + ky * ky <= radius * radius)
-                            {
-                                int sampleX = x + kx;
-                                int sampleY = y + ky;
+                        int sampleX = x + xOffsets[k];
+                        int sampleY = y + yOffsets[k];
 
-                                // Check if the sample is within the image bounds
-                                if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height)
-                                {
-                                    sum += input[sampleY, sampleX];
-                                    count++;
-                                }
-                            }
+                        if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height)
+                        {
+                            sum += input[sampleY * width + sampleX];
+                            count++;
                         }
                     }
 
-                    output[y, x] = count > 0 ? sum / count : 0;
+                    output[y * width + x] = count > 0 ? sum / count : 0;
                 }
-            }
+            });
 
             return output;
         }

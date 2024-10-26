@@ -25,6 +25,8 @@ namespace Shared.ProceduralGeneration.Island
                 // Console.WriteLine($"River {i} of {riverCount * 2} (2)");
             }
 
+            riverMask = ExpandRiver(riverMask, 2);
+
             return riverMask;
         }
 
